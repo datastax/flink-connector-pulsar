@@ -73,9 +73,7 @@ public class TopicPatternSubscriber extends BasePulsarSubscriber {
                             metadata -> {
                                 List<TopicRange> ranges =
                                         rangeGenerator.range(metadata, parallelism);
-                                RangeGenerator.KeySharedMode mode =
-                                        rangeGenerator.keyShareMode(metadata, parallelism);
-                                return toTopicPartitions(metadata, ranges, mode).stream();
+                                return toTopicPartitions(metadata, ranges).stream();
                             })
                     .collect(toSet());
         } catch (PulsarAdminException e) {

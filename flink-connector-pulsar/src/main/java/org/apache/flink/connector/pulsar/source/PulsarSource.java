@@ -36,7 +36,7 @@ import org.apache.flink.connector.pulsar.source.enumerator.cursor.StartCursor;
 import org.apache.flink.connector.pulsar.source.enumerator.cursor.StopCursor;
 import org.apache.flink.connector.pulsar.source.enumerator.subscriber.PulsarSubscriber;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.range.RangeGenerator;
-import org.apache.flink.connector.pulsar.source.reader.PulsarSourceReaderFactory;
+import org.apache.flink.connector.pulsar.source.reader.PulsarSourceReader;
 import org.apache.flink.connector.pulsar.source.reader.deserializer.PulsarDeserializationSchema;
 import org.apache.flink.connector.pulsar.source.reader.deserializer.PulsarDeserializationSchemaInitializationContext;
 import org.apache.flink.connector.pulsar.source.split.PulsarPartitionSplit;
@@ -142,8 +142,8 @@ public final class PulsarSource<OUT>
                 new PulsarDeserializationSchemaInitializationContext(readerContext);
         deserializationSchema.open(initializationContext, sourceConfiguration);
 
-        return PulsarSourceReaderFactory.create(
-                readerContext, deserializationSchema, sourceConfiguration, cryptoKeyReader);
+        return PulsarSourceReader.create(
+                sourceConfiguration, deserializationSchema, readerContext, cryptoKeyReader);
     }
 
     @Internal

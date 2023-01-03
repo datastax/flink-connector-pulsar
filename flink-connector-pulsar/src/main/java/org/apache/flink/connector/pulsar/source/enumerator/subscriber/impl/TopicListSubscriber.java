@@ -66,9 +66,8 @@ public class TopicListSubscriber extends BasePulsarSubscriber {
         for (String topic : topics) {
             TopicMetadata metadata = queryTopicMetadata(metadataRequest, topic);
             List<TopicRange> ranges = rangeGenerator.range(metadata, parallelism);
-            RangeGenerator.KeySharedMode mode = rangeGenerator.keyShareMode(metadata, parallelism);
 
-            results.addAll(toTopicPartitions(metadata, ranges, mode));
+            results.addAll(toTopicPartitions(metadata, ranges));
         }
 
         for (String partition : partitions) {
@@ -78,9 +77,8 @@ public class TopicListSubscriber extends BasePulsarSubscriber {
 
             TopicMetadata metadata = queryTopicMetadata(metadataRequest, name);
             List<TopicRange> ranges = rangeGenerator.range(metadata, parallelism);
-            RangeGenerator.KeySharedMode mode = rangeGenerator.keyShareMode(metadata, parallelism);
 
-            results.addAll(toTopicPartitions(name, index, ranges, mode));
+            results.add(new TopicPartition(name, index, ranges));
         }
 
         return results;
