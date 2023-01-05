@@ -34,7 +34,6 @@ import org.apache.flink.connector.pulsar.source.split.PulsarPartitionSplit;
 import org.apache.flink.metrics.groups.SplitEnumeratorMetricGroup;
 import org.apache.flink.util.FlinkRuntimeException;
 
-import org.apache.pulsar.client.api.MessageId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -227,27 +226,11 @@ public class PulsarSourceEnumerator
             String subscriptionName = sourceConfiguration.getSubscriptionName();
             CursorPosition position =
                     startCursor.position(partition.getTopic(), partition.getPartitionId());
-            MessageId initialPosition = queryInitialPosition(topicName, position);
 
             sneakyAdmin(
                     () ->
-                            adminRequest.createSubscriptionIfNotExist(
-                                    topicName, subscriptionName, initialPosition));
-        }
-    }
-
-    /** Query the available message id from Pulsar. */
-    private MessageId queryInitialPosition(String topicName, CursorPosition position) {
-        CursorPosition.Type type = position.getType();
-        if (type == CursorPosition.Type.TIMESTAMP) {
-            return sneakyAdmin(
-                    () ->
-                            adminRequest.getMessageIdByPublishTime(
-                                    topicName, position.getTimestamp()));
-        } else if (type == CursorPosition.Type.MESSAGE_ID) {
-            return position.getMessageId();
-        } else {
-            throw new UnsupportedOperationException("We don't support this seek type " + type);
+                            position.createInitialPosition(
+                                    adminRequest.pulsarAdmin(), topicName, subscriptionName));
         }
     }
 
