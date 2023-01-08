@@ -264,9 +264,10 @@ public class PulsarSourceReader<OUT>
         PulsarClient pulsarClient = createClient(sourceConfiguration);
         PulsarAdminRequest adminRequest = new PulsarAdminRequest(sourceConfiguration);
 
-        // Choose the right schema to use.
+        // Choose the right schema bytes to use.
         Schema<byte[]> schema;
         if (sourceConfiguration.isEnableSchemaEvolution()) {
+            // Wrap the schema into a byte array schema with extra schema info check.
             PulsarSchema<?> pulsarSchema =
                     ((PulsarSchemaWrapper<?>) deserializationSchema).pulsarSchema();
             schema = new BytesSchema(pulsarSchema);

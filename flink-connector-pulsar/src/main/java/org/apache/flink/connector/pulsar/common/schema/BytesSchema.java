@@ -27,21 +27,21 @@ import java.nio.ByteBuffer;
 import static org.apache.pulsar.client.internal.PulsarClientImplementationBinding.getBytes;
 
 /**
- * The schema is a wrapper for the original schema. It will send the schema info to Pulsar for
+ * This schema is a wrapper for the original schema. It will send the schema info to Pulsar for
  * compatibility check. And didn't deserialize messages.
  */
 public class BytesSchema implements Schema<byte[]>, Serializable {
     private static final long serialVersionUID = -539752264675729127L;
 
-    private final PulsarSchema<?> pulsarSchema;
+    private final PulsarSchema<?> schema;
 
-    public BytesSchema(PulsarSchema<?> pulsarSchema) {
-        this.pulsarSchema = pulsarSchema;
+    public BytesSchema(PulsarSchema<?> schema) {
+        this.schema = schema;
     }
 
     @Override
     public void validate(byte[] message) {
-        pulsarSchema.getPulsarSchema().validate(message);
+        schema.getPulsarSchema().validate(message);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class BytesSchema implements Schema<byte[]>, Serializable {
 
     @Override
     public boolean supportSchemaVersioning() {
-        return pulsarSchema.getPulsarSchema().supportSchemaVersioning();
+        return schema.getPulsarSchema().supportSchemaVersioning();
     }
 
     @Override
@@ -72,7 +72,7 @@ public class BytesSchema implements Schema<byte[]>, Serializable {
 
     @Override
     public SchemaInfo getSchemaInfo() {
-        return pulsarSchema.getSchemaInfo();
+        return schema.getSchemaInfo();
     }
 
     @Override

@@ -96,7 +96,7 @@ public class PulsarPartitionSplitReader
     private final PulsarClient pulsarClient;
     @VisibleForTesting final PulsarAdminRequest adminRequest;
     @VisibleForTesting final SourceConfiguration sourceConfiguration;
-    protected final Schema<byte[]> schema;
+    private final Schema<byte[]> schema;
     @Nullable protected final CryptoKeyReader cryptoKeyReader;
     private final SourceReaderMetricGroup metricGroup;
 

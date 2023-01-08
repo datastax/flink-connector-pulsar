@@ -190,17 +190,6 @@ public final class PulsarSourceOptions {
                                             " A possible solution is to adjust the retention settings in Pulsar or ignoring the check result.")
                                     .build());
 
-    public static final ConfigOption<Boolean> PULSAR_READ_SCHEMA_EVOLUTION =
-            ConfigOptions.key(SOURCE_CONFIG_PREFIX + "enableSchemaEvolution")
-                    .booleanType()
-                    .defaultValue(false)
-                    .withDescription(
-                            Description.builder()
-                                    .text(
-                                            "If you enable this option, we would consume and deserialize the message by using Pulsar's %s.",
-                                            code("Schema"))
-                                    .build());
-
     public static final ConfigOption<Boolean> PULSAR_ALLOW_KEY_SHARED_OUT_OF_ORDER_DELIVERY =
             ConfigOptions.key(SOURCE_CONFIG_PREFIX + "allowKeySharedOutOfOrderDelivery")
                     .booleanType()
@@ -214,6 +203,20 @@ public final class PulsarSourceOptions {
                                     .linebreak()
                                     .text(
                                             "In this case, a single consumer will still receive all the keys, but they may be coming in different orders.")
+                                    .build());
+
+    public static final ConfigOption<Boolean> PULSAR_READ_SCHEMA_EVOLUTION =
+            ConfigOptions.key(SOURCE_CONFIG_PREFIX + "enableSchemaEvolution")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription(
+                            Description.builder()
+                                    .text(
+                                            "If you enable this option and use %s,"
+                                                    + " we would consume and deserialize the message by using Pulsar's %s interface with extra schema evolution check.",
+                                            code(
+                                                    "PulsarSourceBuilder.setDeserializationSchema(Schema)"),
+                                            code("Schema"))
                                     .build());
 
     public static final ConfigOption<Boolean> PULSAR_ENABLE_SOURCE_METRICS =

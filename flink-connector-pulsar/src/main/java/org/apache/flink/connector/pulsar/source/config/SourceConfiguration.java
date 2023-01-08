@@ -22,7 +22,6 @@ import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.source.reader.RecordsWithSplitIds;
 import org.apache.flink.connector.pulsar.common.config.PulsarConfiguration;
-import org.apache.flink.connector.pulsar.sink.writer.serializer.PulsarSchemaWrapper;
 import org.apache.flink.connector.pulsar.source.enumerator.cursor.CursorPosition;
 import org.apache.flink.connector.pulsar.source.enumerator.cursor.StartCursor;
 
@@ -57,7 +56,6 @@ public class SourceConfiguration extends PulsarConfiguration {
     private final int messageQueueCapacity;
     private final long partitionDiscoveryIntervalMs;
     private final boolean enableAutoAcknowledgeMessage;
-    private final boolean enableSchemaEvolution;
     private final long autoCommitCursorInterval;
     private final Duration defaultFetchTime;
     private final Duration maxFetchTime;
@@ -66,6 +64,7 @@ public class SourceConfiguration extends PulsarConfiguration {
     private final String subscriptionName;
     private final SubscriptionMode subscriptionMode;
     private final boolean allowKeySharedOutOfOrderDelivery;
+    private final boolean enableSchemaEvolution;
     private final boolean enableMetrics;
 
     public SourceConfiguration(Configuration configuration) {
@@ -74,7 +73,6 @@ public class SourceConfiguration extends PulsarConfiguration {
         this.messageQueueCapacity = getInteger(ELEMENT_QUEUE_CAPACITY);
         this.partitionDiscoveryIntervalMs = get(PULSAR_PARTITION_DISCOVERY_INTERVAL_MS);
         this.enableAutoAcknowledgeMessage = get(PULSAR_ENABLE_AUTO_ACKNOWLEDGE_MESSAGE);
-        this.enableSchemaEvolution = get(PULSAR_READ_SCHEMA_EVOLUTION);
         this.autoCommitCursorInterval = get(PULSAR_AUTO_COMMIT_CURSOR_INTERVAL);
         this.defaultFetchTime = get(PULSAR_DEFAULT_FETCH_TIME, Duration::ofMillis);
         this.maxFetchTime = get(PULSAR_MAX_FETCH_TIME, Duration::ofMillis);
@@ -83,6 +81,7 @@ public class SourceConfiguration extends PulsarConfiguration {
         this.subscriptionName = get(PULSAR_SUBSCRIPTION_NAME);
         this.subscriptionMode = get(PULSAR_SUBSCRIPTION_MODE);
         this.allowKeySharedOutOfOrderDelivery = get(PULSAR_ALLOW_KEY_SHARED_OUT_OF_ORDER_DELIVERY);
+        this.enableSchemaEvolution = get(PULSAR_READ_SCHEMA_EVOLUTION);
         this.enableMetrics =
                 get(PULSAR_ENABLE_SOURCE_METRICS) && get(PULSAR_STATS_INTERVAL_SECONDS) > 0;
     }
@@ -118,14 +117,6 @@ public class SourceConfiguration extends PulsarConfiguration {
      */
     public boolean isEnableAutoAcknowledgeMessage() {
         return enableAutoAcknowledgeMessage;
-    }
-
-    /**
-     * If we should deserialize the message with a specified Pulsar {@link Schema} instead the
-     * default {@link Schema#BYTES}. This switch is only used for {@link PulsarSchemaWrapper}.
-     */
-    public boolean isEnableSchemaEvolution() {
-        return enableSchemaEvolution;
     }
 
     /**
@@ -192,6 +183,14 @@ public class SourceConfiguration extends PulsarConfiguration {
         return allowKeySharedOutOfOrderDelivery;
     }
 
+    /**
+     * If we need to deserialize the message with a specified Pulsar {@link Schema} instead the
+     * default {@link Schema#BYTES}. This switch is only used for {@code PulsarSchemaWrapper}.
+     */
+    public boolean isEnableSchemaEvolution() {
+        return enableSchemaEvolution;
+    }
+
     /** Whether to expose the metrics from Pulsar Consumer. */
     public boolean isEnableMetrics() {
         return enableMetrics;
@@ -219,6 +218,7 @@ public class SourceConfiguration extends PulsarConfiguration {
                 && Objects.equals(subscriptionName, that.subscriptionName)
                 && subscriptionMode == that.subscriptionMode
                 && allowKeySharedOutOfOrderDelivery == that.allowKeySharedOutOfOrderDelivery
+                && enableSchemaEvolution == that.enableSchemaEvolution
                 && enableMetrics == that.enableMetrics;
     }
 
@@ -236,6 +236,7 @@ public class SourceConfiguration extends PulsarConfiguration {
                 subscriptionName,
                 subscriptionMode,
                 allowKeySharedOutOfOrderDelivery,
+                enableSchemaEvolution,
                 enableMetrics);
     }
 }
