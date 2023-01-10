@@ -101,7 +101,8 @@ public class PulsarChangelogTableITCase extends PulsarTableTestBase {
                                 + " 'topics' = '%s',"
                                 + " 'service-url' = '%s',\n"
                                 + " 'admin-url' = '%s',\n"
-                                + " 'value.format' = '%s'"
+                                + " 'value.format' = '%s',"
+                                + " 'pulsar.source.fetchOneMessageTime' = '100'"
                                 + ")",
                         PulsarTableFactory.IDENTIFIER,
                         topic,
@@ -236,7 +237,8 @@ public class PulsarChangelogTableITCase extends PulsarTableTestBase {
                                 + " 'topics' = '%s',"
                                 + " 'service-url' = '%s',\n"
                                 + " 'admin-url' = '%s',\n"
-                                + " 'value.format' = 'canal-json'"
+                                + " 'value.format' = 'canal-json',"
+                                + " 'pulsar.source.fetchOneMessageTime' = '100'"
                                 + ")",
                         PulsarTableFactory.IDENTIFIER,
                         topic,
@@ -375,7 +377,8 @@ public class PulsarChangelogTableITCase extends PulsarTableTestBase {
                                 + " 'topics' = '%s',"
                                 + " 'service-url' = '%s',\n"
                                 + " 'admin-url' = '%s',\n"
-                                + " 'value.format' = '%s'"
+                                + " 'value.format' = '%s',"
+                                + " 'pulsar.source.fetchOneMessageTime' = '100'"
                                 + ")",
                         PulsarTableFactory.IDENTIFIER,
                         topic,
