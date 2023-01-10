@@ -25,6 +25,7 @@ import org.apache.flink.api.common.serialization.SerializationSchema.Initializat
 import org.apache.flink.api.connector.sink2.Sink.InitContext;
 import org.apache.flink.api.connector.sink2.TwoPhaseCommittingSink.PrecommittingSinkWriter;
 import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.pulsar.common.crypto.PulsarCrypto;
 import org.apache.flink.connector.pulsar.sink.committer.PulsarCommittable;
 import org.apache.flink.connector.pulsar.sink.config.SinkConfiguration;
 import org.apache.flink.connector.pulsar.sink.writer.context.PulsarSinkContext;
@@ -39,13 +40,10 @@ import org.apache.flink.util.FlinkRuntimeException;
 
 import org.apache.flink.shaded.guava30.com.google.common.base.Strings;
 
-import org.apache.pulsar.client.api.CryptoKeyReader;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.TypedMessageBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -88,7 +86,8 @@ public class PulsarWriter<IN> implements PrecommittingSinkWriter<IN, PulsarCommi
      * @param sinkConfiguration The configuration to configure the Pulsar producer.
      * @param serializationSchema Transform the incoming records into different message properties.
      * @param topicRegister The listener for querying topic metadata.
-     * @param topicRouter Topic router to choose topic by incoming records.
+     * @param topicRouter Topic router to choose the topic by incoming records.
+     * @param pulsarCrypto Used for end-to-end encryption.
      * @param initContext Context to provide information about the runtime environment.
      */
     public PulsarWriter(
@@ -97,7 +96,7 @@ public class PulsarWriter<IN> implements PrecommittingSinkWriter<IN, PulsarCommi
             TopicRegister<IN> topicRegister,
             TopicRouter<IN> topicRouter,
             MessageDelayer<IN> messageDelayer,
-            @Nullable CryptoKeyReader cryptoKeyReader,
+            PulsarCrypto pulsarCrypto,
             InitContext initContext) {
         checkNotNull(sinkConfiguration);
         this.serializationSchema = checkNotNull(serializationSchema);
@@ -128,7 +127,7 @@ public class PulsarWriter<IN> implements PrecommittingSinkWriter<IN, PulsarCommi
 
         // Create this producer register after opening serialization schema!
         this.producerRegister =
-                new ProducerRegister(sinkConfiguration, cryptoKeyReader, initContext.metricGroup());
+                new ProducerRegister(sinkConfiguration, pulsarCrypto, initContext.metricGroup());
         this.mailboxExecutor = initContext.getMailboxExecutor();
         this.pendingMessages = new AtomicLong(0);
     }

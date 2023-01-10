@@ -26,6 +26,7 @@ import org.apache.flink.connector.base.source.reader.RecordsWithSplitIds;
 import org.apache.flink.connector.base.source.reader.SourceReaderBase;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitReader;
 import org.apache.flink.connector.base.source.reader.synchronization.FutureCompletingBlockingQueue;
+import org.apache.flink.connector.pulsar.common.crypto.PulsarCrypto;
 import org.apache.flink.connector.pulsar.common.request.PulsarAdminRequest;
 import org.apache.flink.connector.pulsar.common.schema.BytesSchema;
 import org.apache.flink.connector.pulsar.common.schema.PulsarSchema;
@@ -38,15 +39,12 @@ import org.apache.flink.connector.pulsar.source.split.PulsarPartitionSplitState;
 import org.apache.flink.core.io.InputStatus;
 import org.apache.flink.util.FlinkRuntimeException;
 
-import org.apache.pulsar.client.api.CryptoKeyReader;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.MessageId;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -253,8 +251,8 @@ public class PulsarSourceReader<OUT>
     public static <OUT> PulsarSourceReader<OUT> create(
             SourceConfiguration sourceConfiguration,
             PulsarDeserializationSchema<OUT> deserializationSchema,
-            SourceReaderContext readerContext,
-            @Nullable CryptoKeyReader cryptoKeyReader) {
+            PulsarCrypto pulsarCrypto,
+            SourceReaderContext readerContext) {
 
         // Create a message queue with the predefined source option.
         int queueCapacity = sourceConfiguration.getMessageQueueCapacity();
@@ -283,7 +281,7 @@ public class PulsarSourceReader<OUT>
                                 adminRequest,
                                 sourceConfiguration,
                                 schema,
-                                cryptoKeyReader,
+                                pulsarCrypto,
                                 readerContext.metricGroup());
 
         PulsarSourceFetcherManager fetcherManager =

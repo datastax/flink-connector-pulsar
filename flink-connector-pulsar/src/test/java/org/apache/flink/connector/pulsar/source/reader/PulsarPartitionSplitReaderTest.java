@@ -21,6 +21,7 @@ package org.apache.flink.connector.pulsar.source.reader;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.source.reader.RecordsWithSplitIds;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitsAddition;
+import org.apache.flink.connector.pulsar.common.crypto.PulsarCrypto;
 import org.apache.flink.connector.pulsar.common.request.PulsarAdminRequest;
 import org.apache.flink.connector.pulsar.source.config.SourceConfiguration;
 import org.apache.flink.connector.pulsar.source.enumerator.cursor.StopCursor;
@@ -274,7 +275,7 @@ class PulsarPartitionSplitReaderTest extends PulsarTestSuiteBase {
                 adminRequest,
                 sourceConfig,
                 Schema.BYTES,
-                null,
+                PulsarCrypto.disabled(),
                 createSourceReaderMetricGroup());
     }
 

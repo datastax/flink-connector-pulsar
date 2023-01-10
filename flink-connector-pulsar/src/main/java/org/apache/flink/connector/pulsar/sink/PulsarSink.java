@@ -23,6 +23,7 @@ import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.connector.sink2.Committer;
 import org.apache.flink.api.connector.sink2.TwoPhaseCommittingSink;
 import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.pulsar.common.crypto.PulsarCrypto;
 import org.apache.flink.connector.pulsar.sink.committer.PulsarCommittable;
 import org.apache.flink.connector.pulsar.sink.committer.PulsarCommittableSerializer;
 import org.apache.flink.connector.pulsar.sink.committer.PulsarCommitter;
@@ -36,8 +37,6 @@ import org.apache.flink.connector.pulsar.sink.writer.router.TopicRoutingMode;
 import org.apache.flink.connector.pulsar.sink.writer.serializer.PulsarSerializationSchema;
 import org.apache.flink.connector.pulsar.sink.writer.topic.TopicRegister;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
-
-import org.apache.pulsar.client.api.CryptoKeyReader;
 
 import javax.annotation.Nullable;
 
@@ -87,27 +86,24 @@ public class PulsarSink<IN> implements TwoPhaseCommittingSink<IN, PulsarCommitta
     private final SinkConfiguration sinkConfiguration;
     private final PulsarSerializationSchema<IN> serializationSchema;
     private final TopicRegister<IN> topicRegister;
-    private final MessageDelayer<IN> messageDelayer;
     private final TopicRouter<IN> topicRouter;
-
-    @Nullable private final CryptoKeyReader cryptoKeyReader;
+    private final MessageDelayer<IN> messageDelayer;
+    private final PulsarCrypto pulsarCrypto;
 
     PulsarSink(
             SinkConfiguration sinkConfiguration,
             PulsarSerializationSchema<IN> serializationSchema,
             TopicRegister<IN> topicRegister,
             TopicRoutingMode topicRoutingMode,
-            TopicRouter<IN> topicRouter,
+            @Nullable TopicRouter<IN> topicRouter,
             MessageDelayer<IN> messageDelayer,
-            @Nullable CryptoKeyReader cryptoKeyReader) {
+            PulsarCrypto pulsarCrypto) {
         this.sinkConfiguration = checkNotNull(sinkConfiguration);
         this.serializationSchema = checkNotNull(serializationSchema);
         this.topicRegister = checkNotNull(topicRegister);
-        this.messageDelayer = checkNotNull(messageDelayer);
-        this.cryptoKeyReader = cryptoKeyReader;
-        checkNotNull(topicRoutingMode);
 
         // Create topic router supplier.
+        checkNotNull(topicRoutingMode);
         if (topicRoutingMode == TopicRoutingMode.CUSTOM) {
             this.topicRouter = checkNotNull(topicRouter);
         } else if (topicRoutingMode == TopicRoutingMode.ROUND_ROBIN) {
@@ -115,6 +111,9 @@ public class PulsarSink<IN> implements TwoPhaseCommittingSink<IN, PulsarCommitta
         } else {
             this.topicRouter = new KeyHashTopicRouter<>(sinkConfiguration);
         }
+
+        this.messageDelayer = checkNotNull(messageDelayer);
+        this.pulsarCrypto = checkNotNull(pulsarCrypto);
     }
 
     /**
@@ -136,7 +135,7 @@ public class PulsarSink<IN> implements TwoPhaseCommittingSink<IN, PulsarCommitta
                 topicRegister,
                 topicRouter,
                 messageDelayer,
-                cryptoKeyReader,
+                pulsarCrypto,
                 initContext);
     }
 

@@ -42,7 +42,6 @@ import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_BA
 import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_BATCHING_PARTITION_SWITCH_FREQUENCY_BY_PUBLISH_DELAY;
 import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_CHUNKING_ENABLED;
 import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_COMPRESSION_TYPE;
-import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_ENCRYPTION_KEYS;
 import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_INITIAL_SEQUENCE_ID;
 import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_PRODUCER_CRYPTO_FAILURE_ACTION;
 import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_PRODUCER_NAME;
@@ -51,12 +50,12 @@ import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_SE
 import static org.apache.pulsar.client.api.MessageRoutingMode.SinglePartition;
 import static org.apache.pulsar.client.api.ProducerAccessMode.Shared;
 
-/** Create the {@link Producer} to send message and a validator for building sink config. */
+/** Create the {@link Producer} to send messages and a validator for building sink config. */
 @Internal
 public final class PulsarSinkConfigUtils {
 
     private PulsarSinkConfigUtils() {
-        // No need to create instance.
+        // No need to create the instance.
     }
 
     public static final PulsarConfigValidator SINK_CONFIG_VALIDATOR =
@@ -93,13 +92,6 @@ public final class PulsarSinkConfigUtils {
         configuration.useOption(PULSAR_INITIAL_SEQUENCE_ID, builder::initialSequenceId);
         configuration.useOption(
                 PULSAR_PRODUCER_CRYPTO_FAILURE_ACTION, builder::cryptoFailureAction);
-
-        // Create the encryption keys.
-        if (configuration.contains(PULSAR_ENCRYPTION_KEYS)) {
-            for (String key : configuration.get(PULSAR_ENCRYPTION_KEYS)) {
-                builder.addEncryptionKey(key);
-            }
-        }
 
         // Set producer properties.
         Map<String, String> properties = configuration.getProperties(PULSAR_PRODUCER_PROPERTIES);

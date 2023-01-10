@@ -28,6 +28,7 @@ import org.apache.flink.api.connector.source.SourceReaderContext;
 import org.apache.flink.api.connector.source.SplitEnumerator;
 import org.apache.flink.api.connector.source.SplitEnumeratorContext;
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable;
+import org.apache.flink.connector.pulsar.common.crypto.PulsarCrypto;
 import org.apache.flink.connector.pulsar.source.config.SourceConfiguration;
 import org.apache.flink.connector.pulsar.source.enumerator.PulsarSourceEnumState;
 import org.apache.flink.connector.pulsar.source.enumerator.PulsarSourceEnumStateSerializer;
@@ -42,10 +43,6 @@ import org.apache.flink.connector.pulsar.source.reader.deserializer.PulsarDeseri
 import org.apache.flink.connector.pulsar.source.split.PulsarPartitionSplit;
 import org.apache.flink.connector.pulsar.source.split.PulsarPartitionSplitSerializer;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
-
-import org.apache.pulsar.client.api.CryptoKeyReader;
-
-import javax.annotation.Nullable;
 
 /**
  * The Source implementation of Pulsar. Please use a {@link PulsarSourceBuilder} to construct a
@@ -90,10 +87,10 @@ public final class PulsarSource<OUT>
 
     private final Boundedness boundedness;
 
-    /** The pulsar deserialization schema used for deserializing message. */
+    /** The pulsar deserialization schema is used for deserializing message. */
     private final PulsarDeserializationSchema<OUT> deserializationSchema;
 
-    @Nullable private final CryptoKeyReader cryptoKeyReader;
+    private final PulsarCrypto pulsarCrypto;
 
     /**
      * The constructor for PulsarSource, it's package protected for forcing using {@link
@@ -108,7 +105,7 @@ public final class PulsarSource<OUT>
             StopCursor stopCursor,
             Boundedness boundedness,
             PulsarDeserializationSchema<OUT> deserializationSchema,
-            @Nullable CryptoKeyReader cryptoKeyReader) {
+            PulsarCrypto pulsarCrypto) {
         this.sourceConfiguration = sourceConfiguration;
         this.subscriber = subscriber;
         this.rangeGenerator = rangeGenerator;
@@ -116,7 +113,7 @@ public final class PulsarSource<OUT>
         this.stopCursor = stopCursor;
         this.boundedness = boundedness;
         this.deserializationSchema = deserializationSchema;
-        this.cryptoKeyReader = cryptoKeyReader;
+        this.pulsarCrypto = pulsarCrypto;
     }
 
     /**
@@ -143,7 +140,7 @@ public final class PulsarSource<OUT>
         deserializationSchema.open(initializationContext, sourceConfiguration);
 
         return PulsarSourceReader.create(
-                sourceConfiguration, deserializationSchema, readerContext, cryptoKeyReader);
+                sourceConfiguration, deserializationSchema, pulsarCrypto, readerContext);
     }
 
     @Internal

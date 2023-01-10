@@ -32,7 +32,6 @@ import org.apache.pulsar.client.api.CompressionType;
 import org.apache.pulsar.client.api.ProducerCryptoFailureAction;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
@@ -144,18 +143,6 @@ public final class PulsarSinkOptions {
                     .defaultValue(4)
                     .withDescription(
                             "If you enable the topic auto creation, you should also configure the default partition number here");
-
-    /** @deprecated This config option was removed for better performance. */
-    @Deprecated
-    public static final ConfigOption<Integer> PULSAR_MAX_PENDING_MESSAGES_ON_PARALLELISM =
-            ConfigOptions.key(SINK_CONFIG_PREFIX + "maxPendingMessages")
-                    .intType()
-                    .defaultValue(1000)
-                    .withDescription(
-                            Description.builder()
-                                    .text(
-                                            "The maximum number of pending messages in one sink parallelism.")
-                                    .build());
 
     public static final ConfigOption<Boolean> PULSAR_ENABLE_SINK_METRICS =
             ConfigOptions.key(SINK_CONFIG_PREFIX + "enableMetrics")
@@ -281,12 +268,4 @@ public final class PulsarSinkOptions {
                             .defaultValue(ProducerCryptoFailureAction.FAIL)
                             .withDescription(
                                     "The action the producer will take in case of encryption failures.");
-
-    public static final ConfigOption<List<String>> PULSAR_ENCRYPTION_KEYS =
-            ConfigOptions.key(PRODUCER_CONFIG_PREFIX + "encryptionKeys")
-                    .stringType()
-                    .asList()
-                    .noDefaultValue()
-                    .withDescription(
-                            "Add public encryption key, used by producer to encrypt the data key.");
 }

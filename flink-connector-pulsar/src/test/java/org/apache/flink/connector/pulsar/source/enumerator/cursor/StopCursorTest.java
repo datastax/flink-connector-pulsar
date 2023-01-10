@@ -21,6 +21,7 @@ package org.apache.flink.connector.pulsar.source.enumerator.cursor;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.source.reader.RecordsWithSplitIds;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitsAddition;
+import org.apache.flink.connector.pulsar.common.crypto.PulsarCrypto;
 import org.apache.flink.connector.pulsar.common.request.PulsarAdminRequest;
 import org.apache.flink.connector.pulsar.source.config.SourceConfiguration;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicPartition;
@@ -63,7 +64,7 @@ class StopCursorTest extends PulsarTestSuiteBase {
                         new PulsarAdminRequest(operator().admin(), sourceConfig),
                         sourceConfig,
                         Schema.BYTES,
-                        null,
+                        PulsarCrypto.disabled(),
                         createSourceReaderMetricGroup());
         // send the first message and set the stopCursor to filter any late stopCursor
         operator()

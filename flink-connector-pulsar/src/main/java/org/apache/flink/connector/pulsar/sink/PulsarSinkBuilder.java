@@ -25,6 +25,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.pulsar.common.config.PulsarConfigBuilder;
 import org.apache.flink.connector.pulsar.common.config.PulsarOptions;
+import org.apache.flink.connector.pulsar.common.crypto.PulsarCrypto;
 import org.apache.flink.connector.pulsar.sink.config.SinkConfiguration;
 import org.apache.flink.connector.pulsar.sink.writer.delayer.MessageDelayer;
 import org.apache.flink.connector.pulsar.sink.writer.router.TopicRouter;
@@ -38,15 +39,12 @@ import org.apache.flink.connector.pulsar.sink.writer.topic.register.DynamicTopic
 import org.apache.flink.connector.pulsar.sink.writer.topic.register.EmptyTopicRegister;
 import org.apache.flink.connector.pulsar.sink.writer.topic.register.FixedTopicRegister;
 
-import org.apache.pulsar.client.api.CryptoKeyReader;
+import org.apache.pulsar.client.api.ProducerCryptoFailureAction;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.common.schema.KeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +56,7 @@ import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULS
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_AUTH_PLUGIN_CLASS_NAME;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_ENABLE_TRANSACTION;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_SERVICE_URL;
-import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_ENCRYPTION_KEYS;
+import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_PRODUCER_CRYPTO_FAILURE_ACTION;
 import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_PRODUCER_NAME;
 import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_SEND_TIMEOUT_MS;
 import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_SINK_DEFAULT_TOPIC_PARTITIONS;
@@ -68,6 +66,7 @@ import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_WR
 import static org.apache.flink.connector.pulsar.sink.PulsarSinkOptions.PULSAR_WRITE_TRANSACTION_TIMEOUT;
 import static org.apache.flink.connector.pulsar.sink.config.PulsarSinkConfigUtils.SINK_CONFIG_VALIDATOR;
 import static org.apache.flink.connector.pulsar.source.enumerator.topic.TopicNameUtils.distinctTopics;
+import static org.apache.flink.util.InstantiationUtil.isSerializable;
 import static org.apache.flink.util.Preconditions.checkArgument;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 import static org.apache.flink.util.Preconditions.checkState;
@@ -121,8 +120,7 @@ public class PulsarSinkBuilder<IN> {
     private TopicRoutingMode topicRoutingMode;
     private TopicRouter<IN> topicRouter;
     private MessageDelayer<IN> messageDelayer;
-    @Nullable private CryptoKeyReader cryptoKeyReader;
-    private final List<String> encryptionKeys = new ArrayList<>();
+    private PulsarCrypto pulsarCrypto;
 
     // private builder constructor.
     PulsarSinkBuilder() {
@@ -319,41 +317,12 @@ public class PulsarSinkBuilder<IN> {
     /**
      * Set a message delayer for enable Pulsar message delay delivery.
      *
-     * @param messageDelayer The delayer which would defined when to send the message to consumer.
+     * @param messageDelayer The delayer which would defined when to send the message to the
+     *     consumer.
      * @return this PulsarSinkBuilder.
      */
     public PulsarSinkBuilder<IN> delaySendingMessage(MessageDelayer<IN> messageDelayer) {
         this.messageDelayer = checkNotNull(messageDelayer);
-        return this;
-    }
-
-    /**
-     * Sets a {@link CryptoKeyReader}. Configure the key reader to be used to encrypt the message
-     * payloads.
-     *
-     * @param cryptoKeyReader CryptoKeyReader object.
-     * @return this PulsarSinkBuilder.
-     */
-    public PulsarSinkBuilder<IN> setCryptoKeyReader(CryptoKeyReader cryptoKeyReader) {
-        this.cryptoKeyReader = checkNotNull(cryptoKeyReader);
-        return this;
-    }
-
-    /**
-     * Add public encryption key, used by producer to encrypt the data key.
-     *
-     * <p>At the time of producer creation, Pulsar client checks if there are keys added to
-     * encryptionKeys. If keys are found, a callback {@link CryptoKeyReader#getPrivateKey(String,
-     * Map)} and {@link CryptoKeyReader#getPublicKey(String, Map)} is invoked against each key to
-     * load the values of the key. Application should implement this callback to return the key in
-     * pkcs8 format. If compression is enabled, message is encrypted after compression. If batch
-     * messaging is enabled, the batched message is encrypted.
-     *
-     * @param keys Encryption keys.
-     * @return this PulsarSinkBuilder.
-     */
-    public PulsarSinkBuilder<IN> setEncryptionKeys(String... keys) {
-        this.encryptionKeys.addAll(Arrays.asList(keys));
         return this;
     }
 
@@ -374,6 +343,20 @@ public class PulsarSinkBuilder<IN> {
         checkArgument(partitionSize >= 0);
         configBuilder.set(PULSAR_SINK_TOPIC_AUTO_CREATION, true);
         configBuilder.set(PULSAR_SINK_DEFAULT_TOPIC_PARTITIONS, partitionSize);
+        return this;
+    }
+
+    /**
+     * Sets a {@link PulsarCrypto}. Configure the key reader and keys to be used to encrypt the
+     * message payloads.
+     *
+     * @param pulsarCrypto PulsarCrypto object.
+     * @return this PulsarSinkBuilder.
+     */
+    public PulsarSinkBuilder<IN> setPulsarCrypto(
+            PulsarCrypto pulsarCrypto, ProducerCryptoFailureAction action) {
+        this.pulsarCrypto = checkNotNull(pulsarCrypto);
+        configBuilder.set(PULSAR_PRODUCER_CRYPTO_FAILURE_ACTION, action);
         return this;
     }
 
@@ -510,7 +493,7 @@ public class PulsarSinkBuilder<IN> {
             }
         }
 
-        // Topic routing mode validate.
+        // Topic routing mode validation.
         if (topicRoutingMode == null) {
             LOG.info("No topic routing mode has been chosen. We use round-robin mode as default.");
             this.topicRoutingMode = TopicRoutingMode.ROUND_ROBIN;
@@ -520,12 +503,16 @@ public class PulsarSinkBuilder<IN> {
             this.messageDelayer = MessageDelayer.never();
         }
 
-        // Add the encryption keys if user provides one.
-        if (cryptoKeyReader != null) {
-            checkArgument(
-                    !encryptionKeys.isEmpty(), "You should provide at least on encryption key.");
-            configBuilder.set(PULSAR_ENCRYPTION_KEYS, encryptionKeys);
+        if (pulsarCrypto == null) {
+            this.pulsarCrypto = PulsarCrypto.disabled();
         }
+
+        // Make sure they are serializable.
+        checkState(
+                isSerializable(serializationSchema),
+                "PulsarSerializationSchema isn't serializable");
+        checkState(isSerializable(messageDelayer), "MessageDelayer isn't serializable");
+        checkState(isSerializable(pulsarCrypto), "PulsarCrypto isn't serializable");
 
         // This is an unmodifiable configuration for Pulsar.
         // We don't use Pulsar's built-in configure classes for compatible requirement.
@@ -539,12 +526,12 @@ public class PulsarSinkBuilder<IN> {
                 topicRoutingMode,
                 topicRouter,
                 messageDelayer,
-                cryptoKeyReader);
+                pulsarCrypto);
     }
 
     // ------------- private helpers  --------------
 
-    /** Helper method for java compiler recognize the generic type. */
+    /** Helper method for java compiler recognizes the generic type. */
     @SuppressWarnings("unchecked")
     private <T extends IN> PulsarSinkBuilder<T> specialized() {
         return (PulsarSinkBuilder<T>) this;

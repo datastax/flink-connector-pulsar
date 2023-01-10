@@ -26,6 +26,7 @@ import org.apache.flink.connector.base.source.reader.RecordsWithSplitIds;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitReader;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitsAddition;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitsChange;
+import org.apache.flink.connector.pulsar.common.crypto.PulsarCrypto;
 import org.apache.flink.connector.pulsar.common.request.PulsarAdminRequest;
 import org.apache.flink.connector.pulsar.source.config.SourceConfiguration;
 import org.apache.flink.connector.pulsar.source.enumerator.cursor.CursorPosition;
@@ -46,14 +47,14 @@ import org.apache.pulsar.client.api.ConsumerStats;
 import org.apache.pulsar.client.api.CryptoKeyReader;
 import org.apache.pulsar.client.api.KeySharedPolicy;
 import org.apache.pulsar.client.api.Message;
+import org.apache.pulsar.client.api.MessageCrypto;
 import org.apache.pulsar.client.api.MessageId;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
+import org.apache.pulsar.common.api.proto.MessageMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -97,7 +98,7 @@ public class PulsarPartitionSplitReader
     @VisibleForTesting final PulsarAdminRequest adminRequest;
     @VisibleForTesting final SourceConfiguration sourceConfiguration;
     private final Schema<byte[]> schema;
-    @Nullable protected final CryptoKeyReader cryptoKeyReader;
+    private final PulsarCrypto pulsarCrypto;
     private final SourceReaderMetricGroup metricGroup;
 
     private Consumer<byte[]> pulsarConsumer;
@@ -108,13 +109,13 @@ public class PulsarPartitionSplitReader
             PulsarAdminRequest adminRequest,
             SourceConfiguration sourceConfiguration,
             Schema<byte[]> schema,
-            @Nullable CryptoKeyReader cryptoKeyReader,
+            PulsarCrypto pulsarCrypto,
             SourceReaderMetricGroup metricGroup) {
         this.pulsarClient = pulsarClient;
         this.adminRequest = adminRequest;
         this.sourceConfiguration = sourceConfiguration;
         this.schema = schema;
-        this.cryptoKeyReader = cryptoKeyReader;
+        this.pulsarCrypto = pulsarCrypto;
         this.metricGroup = metricGroup;
     }
 
@@ -284,8 +285,16 @@ public class PulsarPartitionSplitReader
         consumerBuilder.topic(partition.getFullTopicName());
 
         // Add CryptoKeyReader if it exists for supporting end-to-end encryption.
+        CryptoKeyReader cryptoKeyReader = pulsarCrypto.cryptoKeyReader();
         if (cryptoKeyReader != null) {
             consumerBuilder.cryptoKeyReader(cryptoKeyReader);
+
+            // Add MessageCrypto if provided.
+            MessageCrypto<MessageMetadata, MessageMetadata> messageCrypto =
+                    pulsarCrypto.messageCrypto();
+            if (messageCrypto != null) {
+                consumerBuilder.messageCrypto(messageCrypto);
+            }
         }
 
         // Add KeySharedPolicy for partial keys subscription.

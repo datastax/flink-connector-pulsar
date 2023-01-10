@@ -25,6 +25,7 @@ import org.apache.flink.api.connector.sink2.Sink.InitContext;
 import org.apache.flink.api.connector.sink2.SinkWriter;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.pulsar.common.crypto.PulsarCrypto;
 import org.apache.flink.connector.pulsar.sink.committer.PulsarCommittable;
 import org.apache.flink.connector.pulsar.sink.config.SinkConfiguration;
 import org.apache.flink.connector.pulsar.sink.writer.delayer.FixedMessageDelayer;
@@ -79,7 +80,13 @@ class PulsarWriterTest extends PulsarTestSuiteBase {
 
         PulsarWriter<String> writer =
                 new PulsarWriter<>(
-                        configuration, schema, listener, router, delayer, null, initContext);
+                        configuration,
+                        schema,
+                        listener,
+                        router,
+                        delayer,
+                        PulsarCrypto.disabled(),
+                        initContext);
 
         writer.flush(false);
         writer.prepareCommit();
