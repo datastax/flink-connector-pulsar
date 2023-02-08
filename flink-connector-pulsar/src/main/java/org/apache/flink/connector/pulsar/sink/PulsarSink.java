@@ -35,7 +35,7 @@ import org.apache.flink.connector.pulsar.sink.writer.router.RoundRobinTopicRoute
 import org.apache.flink.connector.pulsar.sink.writer.router.TopicRouter;
 import org.apache.flink.connector.pulsar.sink.writer.router.TopicRoutingMode;
 import org.apache.flink.connector.pulsar.sink.writer.serializer.PulsarSerializationSchema;
-import org.apache.flink.connector.pulsar.sink.writer.topic.TopicRegister;
+import org.apache.flink.connector.pulsar.sink.writer.topic.MetadataListener;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 
 import javax.annotation.Nullable;
@@ -85,7 +85,7 @@ public class PulsarSink<IN> implements TwoPhaseCommittingSink<IN, PulsarCommitta
 
     private final SinkConfiguration sinkConfiguration;
     private final PulsarSerializationSchema<IN> serializationSchema;
-    private final TopicRegister<IN> topicRegister;
+    private final MetadataListener metadataListener;
     private final TopicRouter<IN> topicRouter;
     private final MessageDelayer<IN> messageDelayer;
     private final PulsarCrypto pulsarCrypto;
@@ -93,14 +93,14 @@ public class PulsarSink<IN> implements TwoPhaseCommittingSink<IN, PulsarCommitta
     PulsarSink(
             SinkConfiguration sinkConfiguration,
             PulsarSerializationSchema<IN> serializationSchema,
-            TopicRegister<IN> topicRegister,
+            MetadataListener metadataListener,
             TopicRoutingMode topicRoutingMode,
             @Nullable TopicRouter<IN> topicRouter,
             MessageDelayer<IN> messageDelayer,
             PulsarCrypto pulsarCrypto) {
         this.sinkConfiguration = checkNotNull(sinkConfiguration);
         this.serializationSchema = checkNotNull(serializationSchema);
-        this.topicRegister = checkNotNull(topicRegister);
+        this.metadataListener = checkNotNull(metadataListener);
 
         // Create topic router supplier.
         checkNotNull(topicRoutingMode);
@@ -132,7 +132,7 @@ public class PulsarSink<IN> implements TwoPhaseCommittingSink<IN, PulsarCommitta
         return new PulsarWriter<>(
                 sinkConfiguration,
                 serializationSchema,
-                topicRegister,
+                metadataListener,
                 topicRouter,
                 messageDelayer,
                 pulsarCrypto,

@@ -40,17 +40,21 @@ import static org.apache.flink.connector.pulsar.source.enumerator.topic.TopicNam
 import static org.apache.flink.connector.pulsar.source.enumerator.topic.TopicNameUtils.topicNameWithPartition;
 import static org.apache.flink.connector.pulsar.source.enumerator.topic.TopicRange.createFullRange;
 import static org.apache.pulsar.client.api.RegexSubscriptionMode.AllTopics;
+import static org.apache.pulsar.common.partition.PartitionedTopicMetadata.NON_PARTITIONED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** Unit tests for {@link PulsarSubscriber}. */
 class PulsarSubscriberTest extends PulsarTestSuiteBase {
 
-    private final String topic1 = topicName("topic-" + randomAlphanumeric(4));
-    private final String topic2 = topicName("pattern-topic-" + randomAlphanumeric(4));
-    private final String topic3 = topicName("topic2-" + randomAlphanumeric(4));
-    private final String topic4 = topicName("non-partitioned-topic-" + randomAlphanumeric(4));
-    private final String topic5 = topicName("non-partitioned-topic2-" + randomAlphanumeric(4));
+    private final String topic1 = topicName("pulsar-subscriber-topic-" + randomAlphanumeric(4));
+    private final String topic2 =
+            topicName("pulsar-subscriber-pattern-topic-" + randomAlphanumeric(4));
+    private final String topic3 = topicName("pulsar-subscriber-topic-2-" + randomAlphanumeric(4));
+    private final String topic4 =
+            topicName("pulsar-subscriber-non-partitioned-topic-" + randomAlphanumeric(4));
+    private final String topic5 =
+            topicName("pulsar-subscriber-non-partitioned-topic-2-" + randomAlphanumeric(4));
 
     private static final int NUM_PARTITIONS_PER_TOPIC = 5;
     private static final int NUM_PARALLELISM = 10;
@@ -60,8 +64,8 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
         operator().createTopic(topic1, NUM_PARTITIONS_PER_TOPIC);
         operator().createTopic(topic2, NUM_PARTITIONS_PER_TOPIC);
         operator().createTopic(topic3, NUM_PARTITIONS_PER_TOPIC);
-        operator().createTopic(topic4, 0);
-        operator().createTopic(topic5, 0);
+        operator().createTopic(topic4, NON_PARTITIONED);
+        operator().createTopic(topic5, NON_PARTITIONED);
     }
 
     @AfterAll
@@ -116,8 +120,7 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
                 subscriber.getSubscribedTopicPartitions(
                         adminRequest, new FullRangeGenerator(), NUM_PARALLELISM);
 
-        TopicPartition desiredPartition =
-                new TopicPartition(topic4, -1, singletonList(createFullRange()));
+        TopicPartition desiredPartition = new TopicPartition(topic4);
         assertThat(partitions).hasSize(1).containsExactly(desiredPartition);
     }
 
@@ -127,7 +130,8 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
                 new PulsarAdminRequest(operator().admin(), operator().config());
         PulsarSubscriber subscriber =
                 getTopicPatternSubscriber(
-                        Pattern.compile("persistent://public/default/non-partitioned-topic*?"),
+                        Pattern.compile(
+                                "persistent://public/default/pulsar-subscriber-non-partitioned-topic*?"),
                         AllTopics);
 
         Set<TopicPartition> topicPartitions =
@@ -148,7 +152,8 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
                 new PulsarAdminRequest(operator().admin(), operator().config());
         PulsarSubscriber subscriber =
                 getTopicPatternSubscriber(
-                        Pattern.compile("persistent://public/default/topic*?"), AllTopics);
+                        Pattern.compile("persistent://public/default/pulsar-subscriber-topic*?"),
+                        AllTopics);
 
         Set<TopicPartition> topicPartitions =
                 subscriber.getSubscribedTopicPartitions(

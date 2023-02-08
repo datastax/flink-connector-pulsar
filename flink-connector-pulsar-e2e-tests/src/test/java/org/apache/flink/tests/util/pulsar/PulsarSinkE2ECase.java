@@ -19,7 +19,7 @@
 package org.apache.flink.tests.util.pulsar;
 
 import org.apache.flink.connector.pulsar.testutils.PulsarTestContextFactory;
-import org.apache.flink.connector.pulsar.testutils.sink.cases.PulsarSinkTestContext;
+import org.apache.flink.connector.pulsar.testutils.sink.cases.SingleTopicProducingContext;
 import org.apache.flink.connector.testframe.junit.annotations.TestContext;
 import org.apache.flink.connector.testframe.junit.annotations.TestEnv;
 import org.apache.flink.connector.testframe.junit.annotations.TestExternalSystem;
@@ -32,17 +32,17 @@ import org.apache.flink.testutils.junit.FailsOnJava11;
 
 import org.junit.experimental.categories.Category;
 
-/** Pulsar sink E2E test based on connector testing framework. */
+import static org.apache.flink.streaming.api.CheckpointingMode.AT_LEAST_ONCE;
+import static org.apache.flink.streaming.api.CheckpointingMode.EXACTLY_ONCE;
+
+/** Pulsar sink E2E test based on the connector testing framework. */
 @SuppressWarnings("unused")
 @Category(value = {FailsOnJava11.class})
 public class PulsarSinkE2ECase extends SinkTestSuiteBase<String> {
 
     // Defines the Semantic.
     @TestSemantics
-    CheckpointingMode[] semantics =
-            new CheckpointingMode[] {
-                CheckpointingMode.EXACTLY_ONCE, CheckpointingMode.AT_LEAST_ONCE
-            };
+    CheckpointingMode[] semantics = new CheckpointingMode[] {AT_LEAST_ONCE, EXACTLY_ONCE};
 
     // Defines TestEnvironment
     @TestEnv
@@ -54,6 +54,6 @@ public class PulsarSinkE2ECase extends SinkTestSuiteBase<String> {
 
     // Defines a set of external context Factories for different test cases.
     @TestContext
-    PulsarTestContextFactory<String, PulsarSinkTestContext> sinkContext =
-            new PulsarTestContextFactory<>(pulsar, PulsarSinkTestContext::new);
+    PulsarTestContextFactory<String, SingleTopicProducingContext> sinkContext =
+            new PulsarTestContextFactory<>(pulsar, SingleTopicProducingContext::new);
 }

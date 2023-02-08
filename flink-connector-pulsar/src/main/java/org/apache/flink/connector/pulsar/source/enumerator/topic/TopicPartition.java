@@ -21,6 +21,7 @@ package org.apache.flink.connector.pulsar.source.enumerator.topic;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.connector.base.source.reader.splitreader.SplitReader;
+import org.apache.flink.connector.pulsar.sink.writer.router.TopicRouter;
 
 import org.apache.flink.shaded.guava30.com.google.common.collect.ImmutableList;
 
@@ -37,23 +38,24 @@ import static org.apache.flink.connector.pulsar.source.enumerator.topic.TopicNam
 import static org.apache.flink.connector.pulsar.source.enumerator.topic.TopicNameUtils.topicName;
 import static org.apache.flink.connector.pulsar.source.enumerator.topic.TopicNameUtils.topicNameWithPartition;
 import static org.apache.flink.connector.pulsar.source.enumerator.topic.TopicRange.createFullRange;
+import static org.apache.flink.util.Preconditions.checkArgument;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 /**
- * Topic partition is the basic topic information used by {@link SplitReader}, we create this topic
- * metas for a specified topic by subscription type and convert it into a partition split.
+ * Topic partition is the basic topic information used by {@link SplitReader} and {@link
+ * TopicRouter}.
  */
 @PublicEvolving
 public class TopicPartition implements Serializable {
     private static final long serialVersionUID = -1474354741550810953L;
 
-    private static final List<TopicRange> FULL_RANGES = ImmutableList.of(createFullRange());
-
     /**
      * If {@link TopicPartition#getPartitionId()} is equal to this. This topic partition wouldn't be
-     * a partition instance. It would be a top topic name.
+     * a partition instance. It would be a non-partitioned topic name.
      */
     public static final int NON_PARTITION_ID = -1;
+
+    private static final List<TopicRange> FULL_RANGES = ImmutableList.of(createFullRange());
 
     /**
      * The topic name of the pulsar. It would be a full topic name. If you don't provide the tenant
@@ -74,15 +76,28 @@ public class TopicPartition implements Serializable {
      */
     private final List<TopicRange> ranges;
 
+    /** Create a non-partition topic without partition information. */
+    @PublicEvolving
     public TopicPartition(String topic) {
-        this(topic, extractPartitionId(topic));
+        this(topic, NON_PARTITION_ID, FULL_RANGES);
     }
 
+    /** Create a topic partition without key hash range. */
+    @PublicEvolving
     public TopicPartition(String topic, int partitionId) {
         this(topic, partitionId, FULL_RANGES);
     }
 
+    /** Create a non-partition topic with key hash range. */
+    @Internal
+    public TopicPartition(String topic, List<TopicRange> ranges) {
+        this(topic, NON_PARTITION_ID, ranges);
+    }
+
+    @Internal
     public TopicPartition(String topic, int partitionId, List<TopicRange> ranges) {
+        checkArgument(partitionId >= NON_PARTITION_ID, "Invalid partition id.");
+
         this.topic = topicName(checkNotNull(topic));
         this.partitionId =
                 partitionId == NON_PARTITION_ID && isPartitioned(topic)
@@ -99,7 +114,6 @@ public class TopicPartition implements Serializable {
         return partitionId;
     }
 
-    /** @return Is this a partition instance or a topic instance? */
     public boolean isPartition() {
         return partitionId != NON_PARTITION_ID;
     }

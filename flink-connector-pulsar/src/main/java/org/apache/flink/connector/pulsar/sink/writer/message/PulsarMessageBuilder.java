@@ -41,8 +41,8 @@ public class PulsarMessageBuilder<T> {
     private String key;
     private byte[] keyBytes;
     private long eventTime;
-    private final Schema<T> schema;
-    private final T value;
+    @Nullable private final Schema<T> schema;
+    @Nullable private final T value;
     private final Map<String, String> properties = new HashMap<>();
     private Long sequenceId;
     private List<String> replicationClusters;
@@ -52,7 +52,7 @@ public class PulsarMessageBuilder<T> {
      * Make this constructor package private for in favor of the {@link PulsarMessage#builder()}
      * method in {@link PulsarMessage}.
      */
-    PulsarMessageBuilder(Schema<T> schema, @Nullable T value) {
+    PulsarMessageBuilder(@Nullable Schema<T> schema, @Nullable T value) {
         this.schema = schema;
         this.value = value;
     }

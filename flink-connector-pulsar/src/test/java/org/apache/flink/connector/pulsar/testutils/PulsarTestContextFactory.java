@@ -18,7 +18,7 @@
 
 package org.apache.flink.connector.pulsar.testutils;
 
-import org.apache.flink.connector.pulsar.testutils.sink.cases.PulsarSinkTestContext;
+import org.apache.flink.connector.pulsar.testutils.sink.PulsarSinkTestContext;
 import org.apache.flink.connector.pulsar.testutils.source.PulsarSourceTestContext;
 import org.apache.flink.connector.testframe.external.ExternalContextFactory;
 

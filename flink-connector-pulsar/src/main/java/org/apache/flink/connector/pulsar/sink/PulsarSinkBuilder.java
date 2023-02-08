@@ -33,11 +33,7 @@ import org.apache.flink.connector.pulsar.sink.writer.router.TopicRoutingMode;
 import org.apache.flink.connector.pulsar.sink.writer.serializer.PulsarSchemaWrapper;
 import org.apache.flink.connector.pulsar.sink.writer.serializer.PulsarSerializationSchema;
 import org.apache.flink.connector.pulsar.sink.writer.serializer.PulsarSerializationSchemaWrapper;
-import org.apache.flink.connector.pulsar.sink.writer.topic.TopicExtractor;
-import org.apache.flink.connector.pulsar.sink.writer.topic.TopicRegister;
-import org.apache.flink.connector.pulsar.sink.writer.topic.register.DynamicTopicRegister;
-import org.apache.flink.connector.pulsar.sink.writer.topic.register.EmptyTopicRegister;
-import org.apache.flink.connector.pulsar.sink.writer.topic.register.FixedTopicRegister;
+import org.apache.flink.connector.pulsar.sink.writer.topic.MetadataListener;
 
 import org.apache.pulsar.client.api.ProducerCryptoFailureAction;
 import org.apache.pulsar.client.api.Schema;
@@ -116,7 +112,7 @@ public class PulsarSinkBuilder<IN> {
     private final PulsarConfigBuilder configBuilder;
 
     private PulsarSerializationSchema<IN> serializationSchema;
-    private TopicRegister<IN> topicRegister;
+    private MetadataListener metadataListener;
     private TopicRoutingMode topicRoutingMode;
     private TopicRouter<IN> topicRouter;
     private MessageDelayer<IN> messageDelayer;
@@ -177,26 +173,10 @@ public class PulsarSinkBuilder<IN> {
      * @return this PulsarSinkBuilder.
      */
     public PulsarSinkBuilder<IN> setTopics(List<String> topics) {
-        checkState(topicRegister == null, "setTopics couldn't be set twice.");
+        checkState(metadataListener == null, "setTopics couldn't be set twice.");
         // Making sure the topic should be distinct.
         List<String> topicSet = distinctTopics(topics);
-        if (topicSet.isEmpty()) {
-            this.topicRegister = new EmptyTopicRegister<>();
-        } else {
-            this.topicRegister = new FixedTopicRegister<>(topicSet);
-        }
-        return this;
-    }
-
-    /**
-     * Set a dynamic topic extractor for extracting the topic information.
-     *
-     * @return this PulsarSinkBuilder.
-     */
-    public PulsarSinkBuilder<IN> setTopics(TopicExtractor<IN> extractor) {
-        checkState(topicRegister == null, "setTopics couldn't be set twice.");
-        this.topicRegister = new DynamicTopicRegister<>(extractor);
-
+        this.metadataListener = new MetadataListener(topicSet);
         return this;
     }
 
@@ -482,14 +462,14 @@ public class PulsarSinkBuilder<IN> {
         }
 
         // Topic metadata listener validation.
-        if (topicRegister == null) {
+        if (metadataListener == null) {
             if (topicRouter == null) {
                 throw new NullPointerException(
                         "No topic names or custom topic router are provided.");
             } else {
                 LOG.warn(
                         "No topic set has been provided, make sure your custom topic router support empty topic set.");
-                this.topicRegister = new EmptyTopicRegister<>();
+                this.metadataListener = new MetadataListener();
             }
         }
 
@@ -522,7 +502,7 @@ public class PulsarSinkBuilder<IN> {
         return new PulsarSink<>(
                 sinkConfiguration,
                 serializationSchema,
-                topicRegister,
+                metadataListener,
                 topicRoutingMode,
                 topicRouter,
                 messageDelayer,

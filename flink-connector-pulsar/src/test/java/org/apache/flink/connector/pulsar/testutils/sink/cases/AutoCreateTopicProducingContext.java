@@ -16,26 +16,28 @@
  * limitations under the License.
  */
 
-package org.apache.flink.connector.pulsar.table.testutils;
+package org.apache.flink.connector.pulsar.testutils.sink.cases;
 
-import org.apache.flink.connector.pulsar.sink.writer.context.PulsarSinkContext;
-import org.apache.flink.connector.pulsar.sink.writer.router.TopicRouter;
-import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicPartition;
-import org.apache.flink.table.data.RowData;
+import org.apache.flink.connector.pulsar.testutils.PulsarTestEnvironment;
+import org.apache.flink.connector.pulsar.testutils.sink.PulsarSinkTestContext;
 
-import java.util.List;
+/**
+ * Sink the messages into a non-existed topic and test the connector could auto create it. This test
+ * case only gets passed when the {@code allowAutoTopicCreation} is enabled on the Pulsar runtime.
+ */
+public class AutoCreateTopicProducingContext extends PulsarSinkTestContext {
 
-/** A mock topic Router for testing purposes only. */
-public class MockTopicRouter implements TopicRouter<RowData> {
-
-    private static final long serialVersionUID = 1316133122715449818L;
+    public AutoCreateTopicProducingContext(PulsarTestEnvironment environment) {
+        super(environment);
+    }
 
     @Override
-    public TopicPartition route(
-            RowData rowData,
-            String key,
-            List<TopicPartition> partitions,
-            PulsarSinkContext context) {
-        return new TopicPartition("never-exist-topic");
+    protected boolean creatTopic() {
+        return false;
+    }
+
+    @Override
+    protected String displayName() {
+        return "write messages into a non-existed topic in Pulsar";
     }
 }

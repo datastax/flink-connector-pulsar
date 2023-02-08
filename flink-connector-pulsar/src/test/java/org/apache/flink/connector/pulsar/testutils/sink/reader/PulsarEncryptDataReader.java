@@ -23,14 +23,16 @@ import org.apache.flink.connector.pulsar.testutils.runtime.PulsarRuntimeOperator
 
 import org.apache.pulsar.client.api.Schema;
 
+import java.util.List;
+
 /** The data reader for reading encrypted messages from Pulsar. */
 public class PulsarEncryptDataReader<T> extends PulsarPartitionDataReader<T> {
 
     public PulsarEncryptDataReader(
             PulsarRuntimeOperator operator,
-            String fullTopicName,
+            List<String> topics,
             Schema<T> schema,
             PulsarCrypto pulsarCrypto) {
-        super(operator, fullTopicName, schema, pulsarCrypto);
+        super(operator, topics, schema, pulsarCrypto);
     }
 }

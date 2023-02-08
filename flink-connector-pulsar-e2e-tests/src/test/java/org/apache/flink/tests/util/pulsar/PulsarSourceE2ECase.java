@@ -19,7 +19,7 @@
 package org.apache.flink.tests.util.pulsar;
 
 import org.apache.flink.connector.pulsar.testutils.PulsarTestContextFactory;
-import org.apache.flink.connector.pulsar.testutils.source.cases.MultipleTopicConsumingContext;
+import org.apache.flink.connector.pulsar.testutils.source.cases.MultipleTopicsConsumingContext;
 import org.apache.flink.connector.pulsar.testutils.source.cases.PartialKeysConsumingContext;
 import org.apache.flink.connector.testframe.junit.annotations.TestContext;
 import org.apache.flink.connector.testframe.junit.annotations.TestEnv;
@@ -33,10 +33,9 @@ import org.apache.flink.testutils.junit.FailsOnJava11;
 
 import org.junit.experimental.categories.Category;
 
-/**
- * Pulsar E2E test based on connector testing framework. It's used for Failover & Exclusive
- * subscription.
- */
+import static org.apache.flink.streaming.api.CheckpointingMode.EXACTLY_ONCE;
+
+/** Pulsar source E2E test based on the connector testing framework. */
 @SuppressWarnings("unused")
 @Category(value = {FailsOnJava11.class})
 public class PulsarSourceE2ECase extends SourceTestSuiteBase<String> {
@@ -50,13 +49,12 @@ public class PulsarSourceE2ECase extends SourceTestSuiteBase<String> {
     PulsarContainerTestEnvironment pulsar = new PulsarContainerTestEnvironment(flink);
 
     // Defines the Semantic.
-    @TestSemantics
-    CheckpointingMode[] semantics = new CheckpointingMode[] {CheckpointingMode.EXACTLY_ONCE};
+    @TestSemantics CheckpointingMode[] semantics = new CheckpointingMode[] {EXACTLY_ONCE};
 
     // Defines a set of external context Factories for different test cases.
     @TestContext
-    PulsarTestContextFactory<String, MultipleTopicConsumingContext> multipleTopic =
-            new PulsarTestContextFactory<>(pulsar, MultipleTopicConsumingContext::new);
+    PulsarTestContextFactory<String, MultipleTopicsConsumingContext> multipleTopic =
+            new PulsarTestContextFactory<>(pulsar, MultipleTopicsConsumingContext::new);
 
     @TestContext
     PulsarTestContextFactory<String, PartialKeysConsumingContext> partialKeys =

@@ -551,6 +551,7 @@ public class PulsarCatalogITCase extends PulsarTableTestBase {
         @Test
         void readFromNativeTableFromEarliest() throws Exception {
             String topicName = newTopicName();
+            pulsar.operator().createTopic(topicName, 1);
             pulsar.operator().sendMessages(topicName, Schema.INT32, INTEGER_LIST);
 
             tableEnv.useCatalog(PULSAR_CATALOG1);
@@ -685,6 +686,7 @@ public class PulsarCatalogITCase extends PulsarTableTestBase {
         void copyDataFromNativeTableToNativeTable() throws Exception {
             String sourceTopic = newTopicName();
             String sourceTableName = TopicName.get(sourceTopic).getLocalName();
+            pulsar.operator().createTopic(sourceTopic, 1);
             pulsar.operator().sendMessages(sourceTopic, Schema.INT32, INTEGER_LIST);
 
             String sinkTopic = newTopicName();
