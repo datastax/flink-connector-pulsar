@@ -83,8 +83,6 @@ public class PulsarTableSerializationSchema implements PulsarSerializationSchema
     @Override
     public PulsarMessage<?> serialize(RowData consumedRow, PulsarSinkContext sinkContext) {
 
-        PulsarMessageBuilder<byte[]> messageBuilder = new PulsarMessageBuilder<>();
-
         final RowKind kind = consumedRow.getRowKind();
         final byte[] serializedData;
         if (upsertMode) {
@@ -101,6 +99,8 @@ public class PulsarTableSerializationSchema implements PulsarSerializationSchema
             final RowData valueRow = createProjectedRow(consumedRow, kind, valueFieldGetters);
             serializedData = valueSerialization.serialize(valueRow);
         }
+        PulsarMessageBuilder<byte[]> messageBuilder =
+                PulsarMessage.builder(Schema.BYTES, serializedData);
 
         // apply metadata
         writableMetadata.applyWritableMetadataInMessage(consumedRow, messageBuilder);
@@ -110,8 +110,6 @@ public class PulsarTableSerializationSchema implements PulsarSerializationSchema
             final RowData keyRow = createProjectedRow(consumedRow, RowKind.INSERT, keyFieldGetters);
             messageBuilder.keyBytes(keySerialization.serialize(keyRow));
         }
-
-        messageBuilder.value(Schema.BYTES, serializedData);
         return messageBuilder.build();
     }
 
