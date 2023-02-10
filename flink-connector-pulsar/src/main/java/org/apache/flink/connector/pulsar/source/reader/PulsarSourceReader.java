@@ -33,6 +33,7 @@ import org.apache.flink.connector.pulsar.common.schema.PulsarSchema;
 import org.apache.flink.connector.pulsar.source.config.SourceConfiguration;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicPartition;
 import org.apache.flink.connector.pulsar.source.reader.deserializer.PulsarDeserializationSchema;
+import org.apache.flink.connector.pulsar.source.reader.deserializer.PulsarDeserializationSchemaInitializationContext;
 import org.apache.flink.connector.pulsar.source.reader.deserializer.PulsarSchemaWrapper;
 import org.apache.flink.connector.pulsar.source.split.PulsarPartitionSplit;
 import org.apache.flink.connector.pulsar.source.split.PulsarPartitionSplitState;
@@ -252,7 +253,8 @@ public class PulsarSourceReader<OUT>
             SourceConfiguration sourceConfiguration,
             PulsarDeserializationSchema<OUT> deserializationSchema,
             PulsarCrypto pulsarCrypto,
-            SourceReaderContext readerContext) {
+            SourceReaderContext readerContext)
+            throws Exception {
 
         // Create a message queue with the predefined source option.
         int queueCapacity = sourceConfiguration.getMessageQueueCapacity();
@@ -261,6 +263,11 @@ public class PulsarSourceReader<OUT>
 
         PulsarClient pulsarClient = createClient(sourceConfiguration);
         PulsarAdminRequest adminRequest = new PulsarAdminRequest(sourceConfiguration);
+
+        // Initialize the deserialization schema before creating the pulsar reader.
+        PulsarDeserializationSchemaInitializationContext initializationContext =
+                new PulsarDeserializationSchemaInitializationContext(readerContext, pulsarClient);
+        deserializationSchema.open(initializationContext, sourceConfiguration);
 
         // Choose the right schema bytes to use.
         Schema<byte[]> schema;
