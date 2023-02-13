@@ -34,6 +34,7 @@ import org.apache.flink.table.catalog.exceptions.CatalogException;
 import org.apache.flink.table.factories.FactoryUtil;
 
 import org.apache.pulsar.client.admin.PulsarAdminException;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.common.naming.NamespaceName;
 import org.apache.pulsar.common.naming.TopicDomain;
 import org.apache.pulsar.common.naming.TopicName;
@@ -74,7 +75,7 @@ public class PulsarCatalogSupport {
             PulsarCatalogConfiguration catalogConfiguration,
             String flinkTenant,
             SchemaTranslator schemaTranslator)
-            throws PulsarAdminException {
+            throws PulsarAdminException, PulsarClientException {
         this.catalogConfiguration = catalogConfiguration;
         this.pulsarAdminTool = new PulsarAdminTool(catalogConfiguration);
         this.schemaTranslator = schemaTranslator;

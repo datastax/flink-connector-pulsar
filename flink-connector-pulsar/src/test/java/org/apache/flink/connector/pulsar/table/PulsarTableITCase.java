@@ -30,7 +30,6 @@ import org.apache.flink.types.Row;
 
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.Producer;
-import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -53,7 +52,6 @@ import java.util.stream.Stream;
 
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
-import static org.apache.flink.connector.pulsar.common.utils.PulsarExceptionUtils.sneakyThrow;
 import static org.apache.flink.connector.pulsar.table.testutils.PulsarTableTestUtils.collectRows;
 import static org.apache.flink.connector.pulsar.table.testutils.TestingUser.createRandomUser;
 import static org.apache.flink.util.CollectionUtil.entry;
@@ -303,8 +301,6 @@ public class PulsarTableITCase extends PulsarTableTestBase {
         try (Producer<String> producer =
                 pulsar.operator().createProducer(sourceTopic, Schema.STRING)) {
             producer.newMessage().value(value).properties(properties).send();
-        } catch (PulsarClientException e) {
-            sneakyThrow(e);
         }
 
         String sourceTableName = randomAlphabetic(5);

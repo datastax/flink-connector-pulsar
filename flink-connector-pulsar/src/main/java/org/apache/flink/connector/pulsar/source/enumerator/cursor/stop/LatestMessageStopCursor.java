@@ -22,12 +22,11 @@ import org.apache.flink.connector.pulsar.source.enumerator.cursor.StopCursor;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicPartition;
 
 import org.apache.pulsar.client.admin.PulsarAdmin;
+import org.apache.pulsar.client.admin.PulsarAdminException;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.MessageId;
 
 import java.util.Objects;
-
-import static org.apache.flink.connector.pulsar.common.utils.PulsarExceptionUtils.sneakyAdmin;
 
 /**
  * A stop cursor that initialize the position to the latest message id. The offsets initialization
@@ -51,10 +50,10 @@ public class LatestMessageStopCursor implements StopCursor {
     }
 
     @Override
-    public void open(PulsarAdmin admin, TopicPartition partition) {
+    public void open(PulsarAdmin admin, TopicPartition partition) throws PulsarAdminException {
         if (messageId == null) {
             String topic = partition.getFullTopicName();
-            this.messageId = sneakyAdmin(() -> admin.topics().getLastMessageId(topic));
+            this.messageId = admin.topics().getLastMessageId(topic);
         }
     }
 

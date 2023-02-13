@@ -85,7 +85,7 @@ public class SQLClientPulsarE2ECase {
     }
 
     @AfterAll
-    public void afterAll() {
+    public void afterAll() throws Exception {
         pulsar.tearDown();
         flink.tearDown();
     }
@@ -165,7 +165,7 @@ public class SQLClientPulsarE2ECase {
         return result;
     }
 
-    private void checkResultTopic(String resultTopic) {
+    private void checkResultTopic(String resultTopic) throws Exception {
         List<Message<byte[]>> result =
                 pulsar.operator().receiveMessages(resultTopic, Schema.BYTES, 4);
         List<String> results =

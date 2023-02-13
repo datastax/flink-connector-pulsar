@@ -26,7 +26,6 @@ import org.apache.flink.streaming.runtime.tasks.TestProcessingTimeService;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -43,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class MetadataListenerTest extends PulsarTestSuiteBase {
 
     @Test
-    void listenEmptyTopics() {
+    void listenEmptyTopics() throws Exception {
         MetadataListener listener = new MetadataListener();
         SinkConfiguration configuration = sinkConfiguration(Duration.ofMinutes(5).toMillis());
         TestProcessingTimeService timeService = new TestProcessingTimeService();
@@ -81,7 +80,7 @@ class MetadataListenerTest extends PulsarTestSuiteBase {
     }
 
     @Test
-    void fetchTopicPartitionInformation() throws IOException {
+    void fetchTopicPartitionInformation() throws Exception {
         String topic = randomAlphabetic(10);
         operator().createTopic(topic, 8);
 
@@ -129,7 +128,7 @@ class MetadataListenerTest extends PulsarTestSuiteBase {
     }
 
     @Test
-    void fetchNonPartitionTopic() throws IOException {
+    void fetchNonPartitionTopic() throws Exception {
         String topic = randomAlphabetic(10);
         operator().createTopic(topic, 0);
         List<TopicPartition> nonPartitionTopic = singletonList(new TopicPartition(topic));

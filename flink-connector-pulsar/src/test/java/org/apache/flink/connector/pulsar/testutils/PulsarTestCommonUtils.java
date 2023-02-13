@@ -28,7 +28,6 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.test.resources.ResourceTestUtils;
 
 import org.apache.pulsar.client.api.MessageId;
-import org.junit.jupiter.api.extension.ParameterContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,10 +80,5 @@ public class PulsarTestCommonUtils {
             splits.add(createPartitionSplit(topicName, i, boundedness));
         }
         return splits;
-    }
-
-    public static boolean isAssignableFromParameterContext(
-            Class<?> requiredType, ParameterContext context) {
-        return requiredType.isAssignableFrom(context.getParameter().getType());
     }
 }

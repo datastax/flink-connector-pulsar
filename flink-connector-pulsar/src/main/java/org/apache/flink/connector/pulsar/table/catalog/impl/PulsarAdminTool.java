@@ -23,6 +23,7 @@ import org.apache.flink.connector.pulsar.table.catalog.utils.TableSchemaHelper;
 
 import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.admin.PulsarAdminException;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.impl.schema.BytesSchema;
 import org.apache.pulsar.common.naming.NamespaceName;
 import org.apache.pulsar.common.naming.TopicName;
@@ -51,7 +52,8 @@ public class PulsarAdminTool implements AutoCloseable {
 
     private final PulsarAdmin admin;
 
-    public PulsarAdminTool(PulsarCatalogConfiguration catalogConfiguration) {
+    public PulsarAdminTool(PulsarCatalogConfiguration catalogConfiguration)
+            throws PulsarClientException {
         this.admin = createAdmin(catalogConfiguration);
     }
 

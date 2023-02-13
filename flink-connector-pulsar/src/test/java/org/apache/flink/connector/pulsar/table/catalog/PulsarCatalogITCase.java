@@ -403,7 +403,7 @@ public class PulsarCatalogITCase extends PulsarTableTestBase {
         }
 
         @Test
-        void dropNativeTableShouldFail() {
+        void dropNativeTableShouldFail() throws Exception {
             tableEnv.useCatalog(PULSAR_CATALOG1);
             tableEnv.useDatabase(PULSAR1_DB);
             String topicName = newTopicName();
@@ -660,7 +660,7 @@ public class PulsarCatalogITCase extends PulsarTableTestBase {
         }
 
         @Test
-        void readFromNativeTableWithComplexSchemaUsingRawFormatShouldFail() {
+        void readFromNativeTableWithComplexSchemaUsingRawFormatShouldFail() throws Exception {
             String topicName = newTopicName();
             TestingUser expectedUser = createRandomUser();
             pulsar.operator().sendMessage(topicName, Schema.AVRO(TestingUser.class), expectedUser);

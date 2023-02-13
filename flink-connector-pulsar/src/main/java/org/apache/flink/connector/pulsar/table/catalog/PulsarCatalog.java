@@ -46,6 +46,7 @@ import org.apache.flink.table.expressions.Expression;
 import org.apache.flink.table.factories.Factory;
 
 import org.apache.pulsar.client.admin.PulsarAdminException;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,7 +113,7 @@ public class PulsarCatalog extends GenericInMemoryCatalog {
                 catalogSupport =
                         new PulsarCatalogSupport(
                                 catalogConfiguration, flinkTenant, new SchemaTranslator(false));
-            } catch (PulsarAdminException e) {
+            } catch (PulsarAdminException | PulsarClientException e) {
                 throw new CatalogException(
                         "Failed to create Pulsar admin with configuration:"
                                 + catalogConfiguration.toString(),

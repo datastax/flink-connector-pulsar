@@ -18,6 +18,7 @@
 
 package org.apache.flink.connector.pulsar.source.enumerator.subscriber;
 
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.pulsar.common.request.PulsarAdminRequest;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicPartition;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.range.FullRangeGenerator;
@@ -60,7 +61,7 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
     private static final int NUM_PARALLELISM = 10;
 
     @BeforeAll
-    void setUp() {
+    void setUp() throws Exception {
         operator().createTopic(topic1, NUM_PARTITIONS_PER_TOPIC);
         operator().createTopic(topic2, NUM_PARTITIONS_PER_TOPIC);
         operator().createTopic(topic3, NUM_PARTITIONS_PER_TOPIC);
@@ -69,7 +70,7 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
     }
 
     @AfterAll
-    void tearDown() {
+    void tearDown() throws Exception {
         operator().deleteTopic(topic1);
         operator().deleteTopic(topic2);
         operator().deleteTopic(topic3);
@@ -78,13 +79,12 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
     }
 
     @Test
-    void topicListSubscriber() {
-        PulsarAdminRequest adminRequest =
-                new PulsarAdminRequest(operator().admin(), operator().config());
+    void topicListSubscriber() throws Exception {
         PulsarSubscriber subscriber = getTopicListSubscriber(Arrays.asList(topic1, topic2));
+        subscriber.open(new PulsarAdminRequest(operator().admin(), new Configuration()));
+
         Set<TopicPartition> topicPartitions =
-                subscriber.getSubscribedTopicPartitions(
-                        adminRequest, new FullRangeGenerator(), NUM_PARALLELISM);
+                subscriber.getSubscribedTopicPartitions(new FullRangeGenerator(), NUM_PARALLELISM);
         Set<TopicPartition> expectedPartitions = new HashSet<>();
 
         for (int i = 0; i < NUM_PARTITIONS_PER_TOPIC; i++) {
@@ -96,15 +96,14 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
     }
 
     @Test
-    void subscribeOnePartitionOfMultiplePartitionTopic() {
-        PulsarAdminRequest adminRequest =
-                new PulsarAdminRequest(operator().admin(), operator().config());
+    void subscribeOnePartitionOfMultiplePartitionTopic() throws Exception {
         String partition = topicNameWithPartition(topic1, 2);
 
         PulsarSubscriber subscriber = getTopicListSubscriber(singletonList(partition));
+        subscriber.open(new PulsarAdminRequest(operator().admin(), new Configuration()));
+
         Set<TopicPartition> partitions =
-                subscriber.getSubscribedTopicPartitions(
-                        adminRequest, new FullRangeGenerator(), NUM_PARALLELISM);
+                subscriber.getSubscribedTopicPartitions(new FullRangeGenerator(), NUM_PARALLELISM);
 
         TopicPartition desiredPartition =
                 new TopicPartition(topic1, 2, singletonList(createFullRange()));
@@ -112,31 +111,28 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
     }
 
     @Test
-    void subscribeNonPartitionedTopicList() {
-        PulsarAdminRequest adminRequest =
-                new PulsarAdminRequest(operator().admin(), operator().config());
+    void subscribeNonPartitionedTopicList() throws Exception {
         PulsarSubscriber subscriber = getTopicListSubscriber(singletonList(topic4));
+        subscriber.open(new PulsarAdminRequest(operator().admin(), new Configuration()));
+
         Set<TopicPartition> partitions =
-                subscriber.getSubscribedTopicPartitions(
-                        adminRequest, new FullRangeGenerator(), NUM_PARALLELISM);
+                subscriber.getSubscribedTopicPartitions(new FullRangeGenerator(), NUM_PARALLELISM);
 
         TopicPartition desiredPartition = new TopicPartition(topic4);
         assertThat(partitions).hasSize(1).containsExactly(desiredPartition);
     }
 
     @Test
-    void subscribeNonPartitionedTopicPattern() {
-        PulsarAdminRequest adminRequest =
-                new PulsarAdminRequest(operator().admin(), operator().config());
+    void subscribeNonPartitionedTopicPattern() throws Exception {
         PulsarSubscriber subscriber =
                 getTopicPatternSubscriber(
                         Pattern.compile(
-                                "persistent://public/default/pulsar-subscriber-non-partitioned-topic*?"),
+                                "persistent://public/default/pulsar-subscriber-non-partitioned-topic.*?"),
                         AllTopics);
+        subscriber.open(new PulsarAdminRequest(operator().admin(), new Configuration()));
 
         Set<TopicPartition> topicPartitions =
-                subscriber.getSubscribedTopicPartitions(
-                        adminRequest, new FullRangeGenerator(), NUM_PARALLELISM);
+                subscriber.getSubscribedTopicPartitions(new FullRangeGenerator(), NUM_PARALLELISM);
 
         Set<TopicPartition> expectedPartitions = new HashSet<>();
 
@@ -147,17 +143,15 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
     }
 
     @Test
-    void topicPatternSubscriber() {
-        PulsarAdminRequest adminRequest =
-                new PulsarAdminRequest(operator().admin(), operator().config());
+    void topicPatternSubscriber() throws Exception {
         PulsarSubscriber subscriber =
                 getTopicPatternSubscriber(
-                        Pattern.compile("persistent://public/default/pulsar-subscriber-topic*?"),
+                        Pattern.compile("persistent://public/default/pulsar-subscriber-topic.*?"),
                         AllTopics);
+        subscriber.open(new PulsarAdminRequest(operator().admin(), new Configuration()));
 
         Set<TopicPartition> topicPartitions =
-                subscriber.getSubscribedTopicPartitions(
-                        adminRequest, new FullRangeGenerator(), NUM_PARALLELISM);
+                subscriber.getSubscribedTopicPartitions(new FullRangeGenerator(), NUM_PARALLELISM);
 
         Set<TopicPartition> expectedPartitions = new HashSet<>();
 

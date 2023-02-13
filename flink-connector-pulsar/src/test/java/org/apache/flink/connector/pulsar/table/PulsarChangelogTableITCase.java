@@ -472,7 +472,7 @@ public class PulsarChangelogTableITCase extends PulsarTableTestBase {
         tableResult.getJobClient().get().cancel().get(); // stop the job
     }
 
-    private void writeRecordsToPulsar(String topic, List<String> lines) {
+    private void writeRecordsToPulsar(String topic, List<String> lines) throws Exception {
         pulsar.operator().sendMessages(topic, Schema.STRING, lines);
     }
 

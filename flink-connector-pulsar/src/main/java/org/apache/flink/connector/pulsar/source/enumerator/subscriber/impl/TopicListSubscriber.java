@@ -18,17 +18,16 @@
 
 package org.apache.flink.connector.pulsar.source.enumerator.subscriber.impl;
 
-import org.apache.flink.connector.pulsar.common.request.PulsarAdminRequest;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicMetadata;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicPartition;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicRange;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.range.RangeGenerator;
 
-import org.apache.flink.shaded.guava30.com.google.common.collect.ImmutableList;
+import org.apache.flink.shaded.guava30.com.google.common.collect.ImmutableSet;
 
+import org.apache.pulsar.client.admin.PulsarAdminException;
 import org.apache.pulsar.common.naming.TopicName;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -38,12 +37,12 @@ import static org.apache.flink.connector.pulsar.source.enumerator.topic.TopicNam
 public class TopicListSubscriber extends BasePulsarSubscriber {
     private static final long serialVersionUID = 6473918213832993116L;
 
-    private final List<String> topics;
-    private final List<String> partitions;
+    private final Set<String> partitions;
+    private final Set<String> topics;
 
     public TopicListSubscriber(List<String> topics) {
-        ImmutableList.Builder<String> topicsBuilder = ImmutableList.builder();
-        ImmutableList.Builder<String> partitionsBuilder = ImmutableList.builder();
+        ImmutableSet.Builder<String> topicsBuilder = ImmutableSet.builder();
+        ImmutableSet.Builder<String> partitionsBuilder = ImmutableSet.builder();
 
         for (String topic : topics) {
             if (isPartitioned(topic)) {
@@ -59,26 +58,21 @@ public class TopicListSubscriber extends BasePulsarSubscriber {
 
     @Override
     public Set<TopicPartition> getSubscribedTopicPartitions(
-            PulsarAdminRequest metadataRequest, RangeGenerator rangeGenerator, int parallelism) {
-        Set<TopicPartition> results = new HashSet<>();
+            RangeGenerator generator, int parallelism) throws PulsarAdminException {
 
         // Query topics from Pulsar.
-        for (String topic : topics) {
-            TopicMetadata metadata = queryTopicMetadata(metadataRequest, topic);
-            List<TopicRange> ranges = rangeGenerator.range(metadata, parallelism);
+        Set<TopicPartition> results = createTopicPartitions(topics, generator, parallelism);
 
-            results.addAll(toTopicPartitions(metadata, ranges));
-        }
-
+        // Query partitions from Pulsar.
         for (String partition : partitions) {
             TopicName topicName = TopicName.get(partition);
             String name = topicName.getPartitionedTopicName();
             int index = topicName.getPartitionIndex();
-
-            TopicMetadata metadata = queryTopicMetadata(metadataRequest, name);
-            List<TopicRange> ranges = rangeGenerator.range(metadata, parallelism);
-
-            results.add(new TopicPartition(name, index, ranges));
+            TopicMetadata metadata = queryTopicMetadata(name);
+            if (metadata != null) {
+                List<TopicRange> ranges = generator.range(metadata, parallelism);
+                results.add(new TopicPartition(name, index, ranges));
+            }
         }
 
         return results;

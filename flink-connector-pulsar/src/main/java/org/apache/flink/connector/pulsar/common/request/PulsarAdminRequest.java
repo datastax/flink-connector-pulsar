@@ -33,6 +33,7 @@ import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.admin.PulsarAdminException;
 import org.apache.pulsar.client.admin.PulsarAdminException.NotFoundException;
 import org.apache.pulsar.client.api.MessageId;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.common.partition.PartitionedTopicMetadata;
 
 import java.io.Closeable;
@@ -47,7 +48,6 @@ import static org.apache.flink.connector.pulsar.common.config.PulsarClientFactor
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_ADMIN_REQUEST_RATES;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_ADMIN_REQUEST_RETRIES;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_ADMIN_REQUEST_SLEEP_TIME;
-import static org.apache.flink.connector.pulsar.common.utils.PulsarExceptionUtils.voidSupplier;
 import static org.apache.flink.shaded.guava30.com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 import static org.apache.flink.util.ExceptionUtils.findThrowable;
 import static org.apache.pulsar.common.partition.PartitionedTopicMetadata.NON_PARTITIONED;
@@ -68,7 +68,7 @@ public class PulsarAdminRequest implements Closeable {
     private final long sleepTime;
     private final RateLimiter rateLimiter;
 
-    public PulsarAdminRequest(PulsarConfiguration configuration) {
+    public PulsarAdminRequest(PulsarConfiguration configuration) throws PulsarClientException {
         this(createAdmin(configuration), configuration);
     }
 
@@ -148,7 +148,12 @@ public class PulsarAdminRequest implements Closeable {
 
     private <R extends PulsarAdminException> void request(ThrowingRunnable<R> runnable)
             throws PulsarAdminException {
-        doRequest(voidSupplier(runnable), retryTimes);
+        doRequest(
+                () -> {
+                    runnable.run();
+                    return null;
+                },
+                retryTimes);
     }
 
     private <T, R extends PulsarAdminException> T request(SupplierWithException<T, R> supplier)

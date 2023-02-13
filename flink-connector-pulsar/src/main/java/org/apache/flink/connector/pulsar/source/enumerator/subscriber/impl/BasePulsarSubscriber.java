@@ -21,44 +21,65 @@ package org.apache.flink.connector.pulsar.source.enumerator.subscriber.impl;
 import org.apache.flink.connector.pulsar.common.request.PulsarAdminRequest;
 import org.apache.flink.connector.pulsar.source.enumerator.subscriber.PulsarSubscriber;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicMetadata;
+import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicNameUtils;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicPartition;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicRange;
+import org.apache.flink.connector.pulsar.source.enumerator.topic.range.RangeGenerator;
 
 import org.apache.pulsar.client.admin.PulsarAdminException;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-
-import static java.util.Collections.singletonList;
-import static org.apache.flink.connector.pulsar.common.utils.PulsarExceptionUtils.sneakyThrow;
+import java.util.Set;
 
 /** PulsarSubscriber abstract class to simplify Pulsar admin related operations. */
 public abstract class BasePulsarSubscriber implements PulsarSubscriber {
     private static final long serialVersionUID = 2053021503331058888L;
 
-    protected TopicMetadata queryTopicMetadata(PulsarAdminRequest adminRequest, String topicName) {
+    protected transient PulsarAdminRequest adminRequest;
+
+    protected TopicMetadata queryTopicMetadata(String topicName) throws PulsarAdminException {
+        // Drop the complete topic name for a clean partitioned topic name.
+        String completeTopicName = TopicNameUtils.topicName(topicName);
         try {
-            return adminRequest.getTopicMetadata(topicName);
-        } catch (PulsarAdminException.NotFoundException e) {
-            return null;
+            return adminRequest.getTopicMetadata(completeTopicName);
         } catch (PulsarAdminException e) {
-            sneakyThrow(e);
-            return null;
+            if (e.getStatusCode() == 404) {
+                // Return null for skipping the topic metadata query.
+                return null;
+            } else {
+                // This method would cause failure for subscribers.
+                throw e;
+            }
         }
     }
 
-    protected List<TopicPartition> toTopicPartitions(
-            TopicMetadata metadata, List<TopicRange> ranges) {
-        if (!metadata.isPartitioned()) {
-            // For non-partitioned topic.
-            return singletonList(new TopicPartition(metadata.getName(), ranges));
-        } else {
-            // For partitioned topic.
-            List<TopicPartition> partitions = new ArrayList<>();
-            for (int i = 0; i < metadata.getPartitionSize(); i++) {
-                partitions.add(new TopicPartition(metadata.getName(), i, ranges));
+    protected Set<TopicPartition> createTopicPartitions(
+            Set<String> topics, RangeGenerator generator, int parallelism)
+            throws PulsarAdminException {
+        Set<TopicPartition> results = new HashSet<>();
+
+        for (String topic : topics) {
+            TopicMetadata metadata = queryTopicMetadata(topic);
+            if (metadata != null) {
+                List<TopicRange> ranges = generator.range(metadata, parallelism);
+                if (!metadata.isPartitioned()) {
+                    // For non-partitioned topic.
+                    results.add(new TopicPartition(metadata.getName(), ranges));
+                } else {
+                    // For partitioned topic.
+                    for (int i = 0; i < metadata.getPartitionSize(); i++) {
+                        results.add(new TopicPartition(metadata.getName(), i, ranges));
+                    }
+                }
             }
-            return partitions;
         }
+
+        return results;
+    }
+
+    @Override
+    public void open(PulsarAdminRequest adminRequest) {
+        this.adminRequest = adminRequest;
     }
 }

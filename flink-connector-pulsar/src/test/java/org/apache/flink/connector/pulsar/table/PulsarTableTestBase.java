@@ -61,7 +61,7 @@ public abstract class PulsarTableTestBase {
     private static final int DEFAULT_PARALLELISM = 1;
 
     @BeforeAll
-    public void beforeAll() {
+    public void beforeAll() throws Exception {
         pulsar.startUp();
         // run env
         env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -73,12 +73,12 @@ public abstract class PulsarTableTestBase {
                 .setString("table.dynamic-table-options.enabled", "true");
     }
 
-    public void createTestTopic(String topic, int numPartitions) {
+    public void createTestTopic(String topic, int numPartitions) throws Exception {
         pulsar.operator().createTopic(topic, numPartitions);
     }
 
     @AfterAll
-    public void afterAll() {
+    public void afterAll() throws Exception {
         pulsar.tearDown();
     }
 }
