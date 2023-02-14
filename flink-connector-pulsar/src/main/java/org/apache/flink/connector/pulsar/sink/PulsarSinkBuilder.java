@@ -79,7 +79,7 @@ import static org.apache.flink.util.Preconditions.checkState;
  *     .setServiceUrl(operator().serviceUrl())
  *     .setAdminUrl(operator().adminUrl())
  *     .setTopics(topic)
- *     .setSerializationSchema(PulsarSerializationSchema.pulsarSchema(Schema.STRING))
+ *     .setSerializationSchema(Schema.STRING)
  *     .build();
  * }</pre>
  *
@@ -97,7 +97,7 @@ import static org.apache.flink.util.Preconditions.checkState;
  *     .setServiceUrl(operator().serviceUrl())
  *     .setAdminUrl(operator().adminUrl())
  *     .setTopics(topic)
- *     .setSerializationSchema(PulsarSerializationSchema.pulsarSchema(Schema.STRING))
+ *     .setSerializationSchema(Schema.STRING)
  *     .setDeliveryGuarantee(deliveryGuarantee)
  *     .build();
  * }</pre>
