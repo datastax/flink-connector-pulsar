@@ -88,12 +88,12 @@ public class PulsarCatalogITCase extends PulsarTableTestBase {
 
     private static final String INMEMORY_DB = "mydatabase";
     private static final String PULSAR1_DB = "public/default";
-    private static final String PULSAR2_DB = "sample/ns1";
+    private static final String PULSAR2_DB = "public/ns1";
 
     private static final String FLINK_TENANT = "__flink_catalog";
 
     @BeforeAll
-    void before() {
+    void before() throws Exception {
         registerCatalogs(tableEnv);
     }
 
@@ -997,7 +997,7 @@ public class PulsarCatalogITCase extends PulsarTableTestBase {
     }
 
     // utils
-    private void registerCatalogs(TableEnvironment tableEnvironment) {
+    private void registerCatalogs(TableEnvironment tableEnvironment) throws Exception {
         tableEnvironment.registerCatalog(
                 INMEMORY_CATALOG, new GenericInMemoryCatalog(INMEMORY_CATALOG, INMEMORY_DB));
 
@@ -1013,6 +1013,8 @@ public class PulsarCatalogITCase extends PulsarTableTestBase {
                         PULSAR1_DB,
                         FLINK_TENANT));
 
+        // Pre-create the namespace to prevent race conditions
+        pulsar.operator().admin().namespaces().createNamespace(PULSAR2_DB);
         tableEnvironment.registerCatalog(
                 PULSAR_CATALOG2,
                 new PulsarCatalog(
