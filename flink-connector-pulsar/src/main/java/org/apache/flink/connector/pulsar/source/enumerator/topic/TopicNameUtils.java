@@ -69,7 +69,7 @@ public final class TopicNameUtils {
         return TopicName.get(topic).getPartitionIndex();
     }
 
-    /** Merge the same partitions into one topic. */
+    /** Merge the same topics or partitions into one topic. */
     public static List<String> distinctTopics(List<String> topics) {
         Set<String> fullTopics = new HashSet<>();
         Map<String, Set<Integer>> partitionedTopics = new HashMap<>();
