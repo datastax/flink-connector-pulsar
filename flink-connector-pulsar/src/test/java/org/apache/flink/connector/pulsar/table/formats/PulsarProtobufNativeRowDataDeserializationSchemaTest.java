@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import static org.apache.flink.connector.pulsar.table.catalog.impl.SchemaTranslator.protoDescriptorToSqlType;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /** Unit test of PulsarProtobufNativeRowDataDeserializationSchema. */
 public class PulsarProtobufNativeRowDataDeserializationSchemaTest {
@@ -66,23 +66,24 @@ public class PulsarProtobufNativeRowDataDeserializationSchemaTest {
 
         final RowData rowData = deserializationSchema.deserialize(protobufData);
         RowData newRowData = rowData;
-        assertEquals(11, newRowData.getArity());
-        assertEquals(99, newRowData.getInt(0));
-        assertEquals(1L, newRowData.getLong(1));
-        assertEquals("test", newRowData.getString(2).toString());
-        assertEquals(Float.valueOf(1.1f), Float.valueOf(newRowData.getFloat(3)));
-        assertEquals(Double.valueOf(1.11d), Double.valueOf(newRowData.getDouble(4)));
-        assertEquals("WEB", newRowData.getString(5).toString());
-        assertEquals("+I(99,99)", newRowData.getRow(6, 2).toString());
-        assertEquals(2, newRowData.getArray(7).size());
-        assertEquals(99, newRowData.getArray(7).getRow(0, 1).getInt(0));
-        assertEquals(99, newRowData.getArray(7).getRow(1, 1).getInt(0));
-        assertEquals(49, newRowData.getBinary(8)[0]);
-        assertEquals(2, newRowData.getMap(9).size());
-        assertEquals("1112", newRowData.getMap(9).keyArray().getString(0).toString());
-        assertEquals("2223", newRowData.getMap(9).valueArray().getString(0).toString());
-        assertEquals(2, newRowData.getMap(10).size());
-        assertEquals("1112", newRowData.getMap(10).keyArray().getString(0).toString());
-        assertEquals("+I(99,99)", newRowData.getMap(10).valueArray().getRow(0, 2).toString());
+        assertThat(newRowData.getArity()).isEqualTo(11);
+        assertThat(newRowData.getInt(0)).isEqualTo(99);
+        assertThat(newRowData.getLong(1)).isEqualTo(1L);
+        assertThat(newRowData.getString(2).toString()).isEqualTo("test");
+        assertThat(Float.valueOf(newRowData.getFloat(3))).isEqualTo(1.1f);
+        assertThat(Double.valueOf(newRowData.getDouble(4))).isEqualTo(1.11d);
+        assertThat(newRowData.getString(5).toString()).isEqualTo("WEB");
+        assertThat(newRowData.getRow(6, 2).toString()).isEqualTo("+I(99,99)");
+        assertThat(newRowData.getArray(7).size()).isEqualTo(2);
+        assertThat(newRowData.getArray(7).getRow(0, 1).getInt(0)).isEqualTo(99);
+        assertThat(newRowData.getArray(7).getRow(1, 1).getInt(0)).isEqualTo(99);
+        assertThat(newRowData.getBinary(8)[0]).isEqualTo((byte) 49);
+        assertThat(newRowData.getMap(9).size()).isEqualTo(2);
+        assertThat(newRowData.getMap(9).keyArray().getString(0).toString()).isEqualTo("1112");
+        assertThat(newRowData.getMap(9).valueArray().getString(0).toString()).isEqualTo("2223");
+        assertThat(newRowData.getMap(10).size()).isEqualTo(2);
+        assertThat(newRowData.getMap(10).keyArray().getString(0).toString()).isEqualTo("1112");
+        assertThat(newRowData.getMap(10).valueArray().getRow(0, 2).toString())
+                .isEqualTo("+I(99,99)");
     }
 }

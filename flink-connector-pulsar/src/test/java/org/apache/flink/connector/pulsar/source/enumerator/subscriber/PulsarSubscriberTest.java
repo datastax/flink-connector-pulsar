@@ -43,7 +43,6 @@ import static org.apache.flink.connector.pulsar.source.enumerator.topic.TopicRan
 import static org.apache.pulsar.client.api.RegexSubscriptionMode.AllTopics;
 import static org.apache.pulsar.common.partition.PartitionedTopicMetadata.NON_PARTITIONED;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** Unit tests for {@link PulsarSubscriber}. */
 class PulsarSubscriberTest extends PulsarTestSuiteBase {
@@ -94,7 +93,7 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
             expectedPartitions.add(new TopicPartition(topic2, i, singletonList(createFullRange())));
         }
 
-        assertEquals(expectedPartitions, topicPartitions);
+        assertThat(topicPartitions).isEqualTo(expectedPartitions);
     }
 
     @Test
@@ -147,7 +146,7 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
         expectedPartitions.add(new TopicPartition(topic4, -1, singletonList(createFullRange())));
         expectedPartitions.add(new TopicPartition(topic5, -1, singletonList(createFullRange())));
 
-        assertEquals(expectedPartitions, topicPartitions);
+        assertThat(topicPartitions).isEqualTo(expectedPartitions);
     }
 
     @Test
@@ -170,6 +169,6 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
             expectedPartitions.add(new TopicPartition(topic3, i, singletonList(createFullRange())));
         }
 
-        assertEquals(expectedPartitions, topicPartitions);
+        assertThat(topicPartitions).isEqualTo(expectedPartitions);
     }
 }

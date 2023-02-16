@@ -22,9 +22,9 @@ import org.apache.flink.core.testutils.CommonTestUtils;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableResult;
 import org.apache.flink.table.planner.factories.TestValuesTableFactory;
-import org.apache.flink.table.utils.TableTestMatchers;
 import org.apache.flink.types.Row;
 import org.apache.flink.types.RowKind;
+import org.apache.flink.types.RowUtils;
 import org.apache.flink.util.CloseableIterator;
 
 import java.io.File;
@@ -42,8 +42,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /** Util class for verify testing results. */
 public class PulsarTableTestUtils {
@@ -78,12 +77,17 @@ public class PulsarTableTestUtils {
             actualData.computeIfAbsent(key, k -> new LinkedList<>()).add(row);
         }
         // compare key first
-        assertEquals("Actual result: " + actual, expectedData.size(), actualData.size());
+        assertThat(actualData).hasSameSizeAs(expectedData);
         // compare by value
         for (Row key : expectedData.keySet()) {
-            assertThat(
-                    actualData.get(key),
-                    TableTestMatchers.deepEqualTo(expectedData.get(key), false));
+            assertThat(actualData.get(key))
+                    .withFailMessage(
+                            "\nexpected: %s\n but was: %s\n for key: %s",
+                            expectedData.get(key), actualData.get(key), key)
+                    .matches(
+                            rows ->
+                                    RowUtils.compareRows(
+                                            expectedData.get(key), (List<Row>) rows, false));
         }
     }
 
