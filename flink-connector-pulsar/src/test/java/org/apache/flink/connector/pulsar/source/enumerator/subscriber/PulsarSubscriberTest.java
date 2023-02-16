@@ -81,7 +81,9 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
     @Test
     void topicListSubscriber() throws Exception {
         PulsarSubscriber subscriber = getTopicListSubscriber(Arrays.asList(topic1, topic2));
-        subscriber.open(new PulsarAdminRequest(operator().admin(), new Configuration()));
+        subscriber.open(
+                operator().client(),
+                new PulsarAdminRequest(operator().admin(), new Configuration()));
 
         Set<TopicPartition> topicPartitions =
                 subscriber.getSubscribedTopicPartitions(new FullRangeGenerator(), NUM_PARALLELISM);
@@ -100,7 +102,9 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
         String partition = topicNameWithPartition(topic1, 2);
 
         PulsarSubscriber subscriber = getTopicListSubscriber(singletonList(partition));
-        subscriber.open(new PulsarAdminRequest(operator().admin(), new Configuration()));
+        subscriber.open(
+                operator().client(),
+                new PulsarAdminRequest(operator().admin(), new Configuration()));
 
         Set<TopicPartition> partitions =
                 subscriber.getSubscribedTopicPartitions(new FullRangeGenerator(), NUM_PARALLELISM);
@@ -113,7 +117,9 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
     @Test
     void subscribeNonPartitionedTopicList() throws Exception {
         PulsarSubscriber subscriber = getTopicListSubscriber(singletonList(topic4));
-        subscriber.open(new PulsarAdminRequest(operator().admin(), new Configuration()));
+        subscriber.open(
+                operator().client(),
+                new PulsarAdminRequest(operator().admin(), new Configuration()));
 
         Set<TopicPartition> partitions =
                 subscriber.getSubscribedTopicPartitions(new FullRangeGenerator(), NUM_PARALLELISM);
@@ -129,7 +135,9 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
                         Pattern.compile(
                                 "persistent://public/default/pulsar-subscriber-non-partitioned-topic.*?"),
                         AllTopics);
-        subscriber.open(new PulsarAdminRequest(operator().admin(), new Configuration()));
+        subscriber.open(
+                operator().client(),
+                new PulsarAdminRequest(operator().admin(), new Configuration()));
 
         Set<TopicPartition> topicPartitions =
                 subscriber.getSubscribedTopicPartitions(new FullRangeGenerator(), NUM_PARALLELISM);
@@ -148,7 +156,9 @@ class PulsarSubscriberTest extends PulsarTestSuiteBase {
                 getTopicPatternSubscriber(
                         Pattern.compile("persistent://public/default/pulsar-subscriber-topic.*?"),
                         AllTopics);
-        subscriber.open(new PulsarAdminRequest(operator().admin(), new Configuration()));
+        subscriber.open(
+                operator().client(),
+                new PulsarAdminRequest(operator().admin(), new Configuration()));
 
         Set<TopicPartition> topicPartitions =
                 subscriber.getSubscribedTopicPartitions(new FullRangeGenerator(), NUM_PARALLELISM);
