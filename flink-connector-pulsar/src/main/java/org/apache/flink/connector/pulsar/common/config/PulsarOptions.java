@@ -629,7 +629,8 @@ public final class PulsarOptions {
                     .withDescription(
                             "The auto cert refresh time (in ms) if Pulsar admin supports TLS authentication.");
 
-    // These config options are passing to PulsarAdminRequest. A wrapper for PulsarAdmin.
+    // These config options below are passing to PulsarAdminInvocationHandler.
+    // A wrapper for PulsarAdmin.
 
     public static final ConfigOption<Integer> PULSAR_ADMIN_REQUEST_RETRIES =
             ConfigOptions.key(ADMIN_CONFIG_PREFIX + "requestRetries")
@@ -639,12 +640,12 @@ public final class PulsarOptions {
                             "For PulsarAdmin request, it will retry until we get a success response,"
                                     + " fail if we exhausted retry count.");
 
-    public static final ConfigOption<Long> PULSAR_ADMIN_REQUEST_SLEEP_TIME =
-            ConfigOptions.key(ADMIN_CONFIG_PREFIX + "requestSleepTime")
+    public static final ConfigOption<Long> PULSAR_ADMIN_REQUEST_WAIT_MILLIS =
+            ConfigOptions.key(ADMIN_CONFIG_PREFIX + "requestWaitMillis")
                     .longType()
                     .defaultValue(Duration.ofSeconds(3).toMillis())
                     .withDescription(
-                            "For PulsarAdmin request, We will sleep the given time before retrying the request.");
+                            "For PulsarAdmin request, We will sleep the given time before retrying the failed request.");
 
     public static final ConfigOption<Integer> PULSAR_ADMIN_REQUEST_RATES =
             ConfigOptions.key(ADMIN_CONFIG_PREFIX + "requestRates")

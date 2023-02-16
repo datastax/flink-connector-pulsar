@@ -323,14 +323,17 @@ class PulsarPartitionSplitReaderTest extends PulsarTestSuiteBase {
 
         // Create the subscription and set the start position for this reader.
         // Remember not to use Consumer.seek(startPosition)
-        SourceConfiguration sourceConfiguration = reader.sourceConfiguration;
-        PulsarAdminRequest adminRequest = reader.adminRequest;
-        String subscriptionName = sourceConfiguration.getSubscriptionName();
-        boolean create =
-                adminRequest.createSubscriptionIfNotExist(
-                        topicName, subscriptionName, startPosition);
-        if (!create) {
-            adminRequest.resetCursor(topicName, subscriptionName, startPosition);
+        String subscriptionName = reader.getSubscriptionName();
+        List<String> subscriptions = operator().admin().topics().getSubscriptions(topicName);
+        if (!subscriptions.contains(subscriptionName)) {
+            // If this subscription is not available. Just create it.
+            operator()
+                    .admin()
+                    .topics()
+                    .createSubscription(topicName, subscriptionName, startPosition);
+        } else {
+            // Reset the subscription if this is existed.
+            operator().admin().topics().resetCursor(topicName, subscriptionName, startPosition);
         }
 
         // Accept the split and start consuming.

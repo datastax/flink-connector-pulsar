@@ -192,7 +192,7 @@ public final class PulsarClientFactory {
      */
     public static PulsarAdmin createAdmin(PulsarConfiguration configuration)
             throws PulsarClientException {
-        PulsarAdminBuilder builder = new PulsarAdminBuilder();
+        PulsarAdminProxyBuilder builder = new PulsarAdminProxyBuilder(configuration);
 
         // Create the authentication instance for the Pulsar client.
         builder.authentication(createAuthentication(configuration));

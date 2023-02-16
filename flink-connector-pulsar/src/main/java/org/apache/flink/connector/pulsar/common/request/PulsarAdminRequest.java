@@ -47,7 +47,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.flink.connector.pulsar.common.config.PulsarClientFactory.createAdmin;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_ADMIN_REQUEST_RATES;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_ADMIN_REQUEST_RETRIES;
-import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_ADMIN_REQUEST_SLEEP_TIME;
+import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_ADMIN_REQUEST_WAIT_MILLIS;
 import static org.apache.flink.shaded.guava30.com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 import static org.apache.flink.util.ExceptionUtils.findThrowable;
 import static org.apache.pulsar.common.partition.PartitionedTopicMetadata.NON_PARTITIONED;
@@ -76,7 +76,7 @@ public class PulsarAdminRequest implements Closeable {
     public PulsarAdminRequest(PulsarAdmin pulsarAdmin, Configuration configuration) {
         this.pulsarAdmin = pulsarAdmin;
         this.retryTimes = configuration.get(PULSAR_ADMIN_REQUEST_RETRIES);
-        this.sleepTime = configuration.get(PULSAR_ADMIN_REQUEST_SLEEP_TIME);
+        this.sleepTime = configuration.get(PULSAR_ADMIN_REQUEST_WAIT_MILLIS);
         this.rateLimiter = RateLimiter.create(configuration.get(PULSAR_ADMIN_REQUEST_RATES));
     }
 
