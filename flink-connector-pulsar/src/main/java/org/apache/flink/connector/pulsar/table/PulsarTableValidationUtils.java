@@ -29,9 +29,8 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.factories.FactoryUtil;
 import org.apache.flink.types.RowKind;
 
-import org.apache.flink.shaded.guava30.com.google.common.collect.Sets;
-
 import org.apache.pulsar.client.api.SubscriptionType;
+import org.apache.pulsar.shade.com.google.common.collect.Sets;
 
 import java.util.List;
 import java.util.Optional;

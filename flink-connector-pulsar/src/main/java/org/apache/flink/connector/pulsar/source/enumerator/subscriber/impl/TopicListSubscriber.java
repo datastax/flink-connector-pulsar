@@ -23,10 +23,9 @@ import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicPartition;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicRange;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.range.RangeGenerator;
 
-import org.apache.flink.shaded.guava30.com.google.common.collect.ImmutableSet;
-
 import org.apache.pulsar.client.admin.PulsarAdminException;
 import org.apache.pulsar.common.naming.TopicName;
+import org.apache.pulsar.shade.com.google.common.collect.ImmutableSet;
 
 import java.util.List;
 import java.util.Set;
