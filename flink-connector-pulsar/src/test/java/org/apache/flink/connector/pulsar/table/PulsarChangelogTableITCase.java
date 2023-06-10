@@ -30,10 +30,12 @@ import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.TableResult;
 import org.apache.flink.table.api.config.ExecutionConfigOptions;
 import org.apache.flink.table.api.config.OptimizerConfigOptions;
+import org.apache.flink.test.junit5.MiniClusterExtension;
 
 import org.apache.pulsar.client.api.Schema;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.time.Duration;
 import java.time.ZoneId;
@@ -45,6 +47,7 @@ import static org.apache.flink.connector.pulsar.table.testutils.PulsarTableTestU
 import static org.apache.flink.connector.pulsar.table.testutils.PulsarTableTestUtils.waitingExpectedResults;
 
 /** IT cases for Pulsar with changelog format for Table API & SQL. */
+@ExtendWith(MiniClusterExtension.class)
 public class PulsarChangelogTableITCase extends PulsarTableTestBase {
 
     private static final String PULSAR_CATALOG = "pulsarcatalog";
