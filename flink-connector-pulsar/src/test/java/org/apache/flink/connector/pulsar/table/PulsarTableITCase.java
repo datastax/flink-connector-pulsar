@@ -375,6 +375,7 @@ public class PulsarTableITCase extends PulsarTableTestBase {
 
         final String sinkTopic = "sink_topic_" + randomAlphanumeric(3);
         createTestTopic(sinkTopic, 1);
+        pulsar.operator().createSchema(sinkTopic, schema);
 
         String sinkTableName = randomAlphabetic(5);
         pulsar.operator().sendMessage(sourceTopic, schema, value);
