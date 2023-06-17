@@ -74,8 +74,7 @@ public class PulsarTableDeserializationSchema implements PulsarDeserializationSc
     }
 
     @Override
-    public void open(
-            DeserializationSchema.InitializationContext context, SourceConfiguration configuration)
+    public void open(PulsarInitializationContext context, SourceConfiguration configuration)
             throws Exception {
         if (keyDeserialization != null) {
             keyDeserialization.open(context);

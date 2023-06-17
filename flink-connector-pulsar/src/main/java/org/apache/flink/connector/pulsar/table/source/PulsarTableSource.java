@@ -119,7 +119,6 @@ public class PulsarTableSource implements ScanTableSource, SupportsReadingMetada
                         .setStartCursor(startCursor)
                         .setUnboundedStopCursor(stopCursor)
                         .setDeserializationSchema(deserializationSchema)
-                        .setSubscriptionType(subscriptionType)
                         .setProperties(properties)
                         .build();
         return SourceProvider.of(source);
