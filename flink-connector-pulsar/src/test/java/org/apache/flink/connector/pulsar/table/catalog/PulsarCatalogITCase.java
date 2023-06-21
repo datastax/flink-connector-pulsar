@@ -137,14 +137,14 @@ public class PulsarCatalogITCase extends PulsarTableTestBase {
             assertThat(catalog).isInstanceOf(PulsarCatalog.class);
 
             tableEnv.useCatalog(PULSAR_CATALOG1);
-            assertThat(tableEnv.getCurrentDatabase()).isEqualTo(PULSAR1_DB);
+            assertThat(tableEnv.getCurrentDatabase()).isEqualTo(DEFAULT_DB);
 
             catalog = tableEnv.getCatalog(PULSAR_CATALOG2).orElse(null);
             assertThat(catalog).isNotNull();
             assertThat(catalog).isInstanceOf(PulsarCatalog.class);
 
             tableEnv.useCatalog(PULSAR_CATALOG2);
-            assertThat(tableEnv.getCurrentDatabase()).isEqualTo(PULSAR2_DB);
+            assertThat(tableEnv.getCurrentDatabase()).isEqualTo(DEFAULT_DB);
         }
 
         // database operations
@@ -1009,7 +1009,7 @@ public class PulsarCatalogITCase extends PulsarTableTestBase {
                         PULSAR_CATALOG1,
                         configBuilder.build(
                                 CATALOG_CONFIG_VALIDATOR, PulsarCatalogConfiguration::new),
-                        PULSAR1_DB,
+                        DEFAULT_DB,
                         FLINK_TENANT));
 
         // Pre-create the namespace to prevent race conditions
@@ -1020,7 +1020,7 @@ public class PulsarCatalogITCase extends PulsarTableTestBase {
                         PULSAR_CATALOG2,
                         configBuilder.build(
                                 CATALOG_CONFIG_VALIDATOR, PulsarCatalogConfiguration::new),
-                        PULSAR2_DB,
+                        DEFAULT_DB,
                         FLINK_TENANT));
 
         tableEnvironment.useCatalog(INMEMORY_CATALOG);
