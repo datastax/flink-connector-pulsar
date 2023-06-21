@@ -22,10 +22,12 @@ on:
     branches:
       - 'main'
       - 'v*'
+      - 'develop*'
   pull_request:
     branches:
       - 'main'
       - 'v*'
+      - 'develop*'
 
 # Concurrency strategy:
 #   github.workflow: distinguish this workflow from others
